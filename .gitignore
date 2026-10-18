@@ -1,0 +1,15 @@
+02_SourceCode/app/node_modules/
+02_SourceCode/app/vendor/
+02_SourceCode/app/public/build/
+02_SourceCode/app/public/storage
+02_SourceCode/app/storage/app/public/*
+02_SourceCode/app/storage/app/backups/
+02_SourceCode/app/storage/logs/*
+02_SourceCode/app/storage/framework/cache/*
+02_SourceCode/app/storage/framework/sessions/*
+02_SourceCode/app/storage/framework/views/*
+02_SourceCode/app/.env
+02_SourceCode/.env
+02_SourceCode/python-service/__pycache__/
+**/__pycache__/
+01_BaoCao/~$*

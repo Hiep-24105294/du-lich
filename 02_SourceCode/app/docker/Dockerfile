@@ -1,0 +1,42 @@
+# ---------- Stage 1: build front-end assets ----------
+FROM node:20-alpine AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+RUN npm run build
+
+# ---------- Stage 2: install PHP dependencies ----------
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
+COPY . .
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# ---------- Stage 3: runtime (Apache + PHP 8.3) ----------
+FROM php:8.3-apache
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libzip-dev libpng-dev libicu-dev libonig-dev default-mysql-client unzip \
+ && docker-php-ext-install -j"$(nproc)" pdo_mysql intl zip gd opcache bcmath \
+ && a2enmod rewrite headers \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+ && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+ && printf 'ServerTokens Prod\nServerSignature Off\n' >> /etc/apache2/apache2.conf
+COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
+
+WORKDIR /var/www/html
+COPY --from=vendor --chown=www-data:www-data /app /var/www/html
+COPY --from=assets --chown=www-data:www-data /app/public/build /var/www/html/public/build
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint && chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s CMD curl -fsS http://localhost/healthz || exit 1
+ENTRYPOINT ["entrypoint"]
+CMD ["apache2-foreground"]
