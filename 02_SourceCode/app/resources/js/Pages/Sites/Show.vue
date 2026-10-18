@@ -60,18 +60,20 @@ const directions = computed(() =>
     <PageMeta :title="site.title" :description="site.summary || ''" fallback-key="sites.description" :image="site.cover?.url" />
     <JsonLd :data="site.jsonld" />
 
-    <!-- Hero ảnh bìa -->
-    <section class="relative">
-        <CoverImage :src="site.cover?.url" :alt="site.cover?.caption || site.title" ratio="aspect-[16/10] sm:aspect-[21/9] max-h-[70vh] w-full" eager />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" aria-hidden="true"></div>
-        <div class="absolute inset-x-0 bottom-0">
-            <div class="container-page pb-6 text-white md:pb-10">
+    <!-- Hero ảnh bìa: <1024px tiêu đề nằm dưới ảnh, >=1024px phủ lên đáy ảnh (xem .hero-cover trong app.css) -->
+    <section class="hero-cover">
+        <div class="hero-cover__media">
+            <CoverImage :src="site.cover?.url" :alt="site.cover?.caption || site.title" ratio="aspect-[16/10] sm:aspect-[21/9] max-h-[70vh] w-full" eager />
+            <div class="hero-cover__fade" aria-hidden="true"></div>
+        </div>
+        <div class="hero-cover__body">
+            <div class="container-page">
                 <div class="mb-3 flex flex-wrap gap-2">
-                    <span class="badge border-white/40 bg-white/15 text-white">{{ te('site_type', site.site_type) }}</span>
+                    <span class="badge border-white/40 bg-white/15 text-on-hero">{{ te('site_type', site.site_type) }}</span>
                     <span v-if="site.recognition_level" class="badge badge-accent">{{ te('recognition_level', site.recognition_level) }}</span>
                 </div>
-                <h1 class="max-w-4xl text-3xl font-bold text-white md:text-5xl">{{ site.title }}</h1>
-                <p v-if="site.province" class="mt-2 inline-flex items-center gap-1 text-sm opacity-90"><Icon name="pin" :size="16" />{{ site.province.name }}</p>
+                <h1 class="max-w-4xl text-3xl font-bold md:text-5xl">{{ site.title }}</h1>
+                <p v-if="site.province" class="mt-2 inline-flex items-center gap-1 text-sm"><Icon name="pin" :size="16" />{{ site.province.name }}</p>
             </div>
         </div>
     </section>

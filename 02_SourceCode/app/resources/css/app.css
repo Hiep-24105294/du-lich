@@ -32,6 +32,8 @@
     --color-info: var(--ds-info);
     --color-info-soft: var(--ds-info-soft);
     --color-overlay: var(--ds-overlay);
+    --color-hero-scrim: var(--ds-hero-scrim);
+    --color-on-hero: var(--ds-on-hero);
     --font-display: 'Playfair Display Variable', 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-body: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
@@ -67,6 +69,11 @@
     --ds-info: #2A5B84;
     --ds-info-soft: #E2EDF6;
     --ds-overlay: rgb(43 29 20 / 0.6);
+    /* Hero ảnh bìa: nền phủ luôn tối ở cả hai theme để chữ trắng đạt AA (>= 4.5:1) */
+    --ds-hero-scrim: #2B1D14;
+    --ds-hero-scrim-strong: rgb(20 13 8 / 0.88);
+    --ds-hero-scrim-soft: rgb(20 13 8 / 0.65);
+    --ds-on-hero: #FFFFFF;
     --radius: 0.75rem;
     --radius-lg: 1.25rem;
     --shadow: 0 1px 2px rgb(60 40 20 / 0.06), 0 4px 14px rgb(60 40 20 / 0.08);
@@ -99,6 +106,10 @@
     --ds-info: #8EC0EA;
     --ds-info-soft: #1C2B3A;
     --ds-overlay: rgb(0 0 0 / 0.7);
+    --ds-hero-scrim: #0E0C0A;
+    --ds-hero-scrim-strong: rgb(0 0 0 / 0.88);
+    --ds-hero-scrim-soft: rgb(0 0 0 / 0.65);
+    --ds-on-hero: #FFFFFF;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 14px rgb(0 0 0 / 0.35);
     --shadow-lg: 0 10px 30px rgb(0 0 0 / 0.55);
     --focus-ring: #D4A94E;
@@ -390,6 +401,52 @@
         background:
             radial-gradient(circle at 3px 3px, var(--ds-accent) 2px, transparent 2.5px) 0 0 / 18px 6px repeat-x;
         opacity: 0.7;
+    }
+
+    /*
+     * Hero trang chi tiết. Ảnh minh họa có thể in sẵn chữ ở giữa ảnh (qa_r2_2):
+     * dưới 1024px khối tiêu đề nằm DƯỚI ảnh trên nền tối đặc để không bao giờ chồng chữ;
+     * từ 1024px mới phủ lên đáy ảnh với gradient >= 0.65 sau chữ (trắng trên nền đó >= 4.5:1).
+     */
+    .hero-cover {
+        position: relative;
+        background: var(--ds-hero-scrim);
+        color: var(--ds-on-hero);
+    }
+    .hero-cover__media { position: relative; }
+    .hero-cover__fade {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(to top, var(--ds-hero-scrim) 0%, transparent 35%);
+    }
+    .hero-cover__body {
+        position: relative;
+        padding-top: 1.25rem;
+        padding-bottom: 1.75rem;
+    }
+    .hero-cover__body :where(h1, p) { color: var(--ds-on-hero); }
+    @media (min-width: 768px) {
+        .hero-cover__body { padding-top: 1.75rem; padding-bottom: 2.25rem; }
+    }
+    @media (min-width: 1024px) {
+        .hero-cover__fade {
+            background: linear-gradient(to top, var(--ds-hero-scrim-soft) 0%, transparent 55%);
+        }
+        .hero-cover__body {
+            position: absolute;
+            inset-inline: 0;
+            bottom: 0;
+            padding-top: 5rem;
+            padding-bottom: 2.5rem;
+            background: linear-gradient(
+                to top,
+                var(--ds-hero-scrim-strong) 0%,
+                var(--ds-hero-scrim-soft) 65%,
+                transparent 100%
+            );
+        }
+        .hero-cover__body h1 { text-shadow: 0 1px 3px rgb(0 0 0 / 0.6); }
     }
 }
 
