@@ -1,6 +1,5 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import SiteCard from '@/Components/SiteCard.vue';
@@ -10,6 +9,7 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 import { enumOptions } from '@/Utils/options';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     sites: { type: Object, default: () => ({ data: [], links: [] }) },
@@ -43,15 +43,15 @@ const total = computed(() => props.sites?.total ?? list.value.length);
 </script>
 
 <template>
-    <Head :title="t('sites.title')" />
+    <PageMeta :title="t('sites.title')" fallback-key="sites.description" />
     <div class="container-page py-8">
         <PageHeader :title="t('sites.title')" :eyebrow="t('sites.eyebrow')" :description="t('sites.description')">
             <template #actions>
                 <div class="inline-flex rounded-full border border-border p-1" role="group" :aria-label="t('sites.view_mode')">
-                    <button type="button" class="tab border-0" :aria-pressed="view === 'grid'" :aria-selected="view === 'grid'" @click="view = 'grid'">
+                    <button type="button" class="tab border-0" :aria-pressed="view === 'grid'" @click="view = 'grid'">
                         {{ t('sites.view_grid') }}
                     </button>
-                    <button type="button" class="tab border-0" :aria-pressed="view === 'map'" :aria-selected="view === 'map'" @click="view = 'map'">
+                    <button type="button" class="tab border-0" :aria-pressed="view === 'map'" @click="view = 'map'">
                         <Icon name="map" :size="16" class="mr-1 inline" />{{ t('sites.view_map') }}
                     </button>
                 </div>
@@ -70,7 +70,7 @@ const total = computed(() => props.sites?.total ?? list.value.length);
         <div v-show="view === 'grid'" class="mt-4">
             <EmptyState v-if="!list.length" icon="landmark" :title="t('sites.empty')" :description="t('sites.empty_hint')" />
             <div v-else class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <SiteCard v-for="site in list" :key="site.id" :site="site" />
+                <SiteCard v-for="(site, i) in list" :key="site.id" :site="site" :heading-level="2" :eager="i === 0" />
             </div>
             <Pagination :paginator="sites" />
         </div>

@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import SiteCard from '@/Components/SiteCard.vue';
 import ArtifactCard from '@/Components/ArtifactCard.vue';
@@ -9,6 +8,7 @@ import RouteCard from '@/Components/RouteCard.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     tag: { type: Object, required: true },
@@ -23,7 +23,7 @@ const isEmpty = computed(() => !props.sites.length && !props.artifacts.length &&
 </script>
 
 <template>
-    <Head :title="`#${tag.name}`" />
+    <PageMeta :title="`#${tag.name}`" :description="tag.description || ''" fallback-key="tags.description" />
     <div class="container-page py-8">
         <Breadcrumbs :items="[{ label: t('nav.home'), href: lr('/') }, { label: t('nav.tags'), href: lr('/the') }, { label: tag.name }]" />
         <header class="mt-5 mb-8">

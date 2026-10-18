@@ -1,13 +1,17 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import MapView from '@/Components/MapView.vue';
+// Bản đồ là nội dung chính (phần tử LCP) của trang này: import tĩnh để Leaflet được modulepreload cùng trang,
+// MapView vẫn import động nhưng sẽ nhận ngay module đã nạp
+import 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
 import { enumOptions } from '@/Utils/options';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     geojson: { type: Object, default: () => ({ type: 'FeatureCollection', features: [] }) },
@@ -38,7 +42,10 @@ const focus = (p) => {
 </script>
 
 <template>
-    <Head :title="t('map.title')" />
+    <PageMeta :title="t('map.title')" fallback-key="map.description">
+        <!-- Tile OSM là phần tử LCP của trang: mở kết nối sớm -->
+        <link head-key="preconnect-osm" rel="preconnect" href="https://tile.openstreetmap.org" />
+    </PageMeta>
     <div class="container-page py-8">
         <PageHeader :title="t('map.title')" :eyebrow="t('map.eyebrow')" :description="t('map.description')" />
         <FilterBar :filters="filters" :fields="fields" />
@@ -51,7 +58,7 @@ const focus = (p) => {
                 <p v-if="!sortedProvinces.length" class="text-sm text-muted">{{ t('common.no_data') }}</p>
                 <ul v-else class="-mx-2 flex-1 space-y-0.5 overflow-y-auto">
                     <li v-for="p in sortedProvinces" :key="p.code">
-                        <button type="button" class="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-surface-2" :aria-label="t('map.focus_province', { name: p.name })" @click="focus(p)">
+                        <button type="button" class="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-surface-2" :title="t('map.focus_province', { name: p.name })" @click="focus(p)">
                             <span class="inline-flex min-w-0 items-center gap-2"><Icon name="pin" :size="14" class="text-primary" /><span class="truncate">{{ p.name }}</span></span>
                             <span class="badge shrink-0">{{ number(p.count) }}</span>
                         </button>

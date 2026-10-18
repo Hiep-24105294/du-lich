@@ -6,6 +6,8 @@ import { i18nPlugin } from '@/Composables/useT';
 // axios tự gửi X-XSRF-TOKEN từ cookie; header này giúp Laravel nhận diện AJAX
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+const FONT_FALLBACK_DELAY_MS = 200;
+
 // Nạp trang theo nhu cầu: mỗi trang là một chunk riêng, bundle đầu vào chỉ còn khung ứng dụng
 const pages = import.meta.glob('./Pages/**/*.vue');
 
@@ -34,6 +36,9 @@ createInertiaApp({
             .use(plugin)
             .use(i18nPlugin)
             .mount(el);
+        // Nạp font tự host khi rảnh, sau khi nội dung đầu tiên đã vẽ (hàm định nghĩa trong app.blade.php)
+        const whenIdle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, FONT_FALLBACK_DELAY_MS));
+        whenIdle(() => window.disansoLoadFonts?.());
     },
     progress: {
         color: '#B7791F',

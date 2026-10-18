@@ -1,11 +1,5 @@
 @import 'tailwindcss';
-/* Font tự host (Vite băm tên file, font-display: swap, unicode-range nên chỉ tải tập ký tự cần dùng):
-   bỏ CSS Google Fonts chặn hiển thị */
-@import '@fontsource/be-vietnam-pro/400.css';
-@import '@fontsource/be-vietnam-pro/500.css';
-@import '@fontsource/be-vietnam-pro/600.css';
-@import '@fontsource/be-vietnam-pro/700.css';
-@import '@fontsource-variable/playfair-display/wght.css';
+/* Font tự host nằm trong resources/css/fonts.css, nạp sau lần vẽ đầu (xem app.blade.php) */
 
 @source '../**/*.blade.php';
 @source '../**/*.js';
@@ -345,7 +339,7 @@
         color: var(--ds-text);
         text-decoration: none;
     }
-    .tab[aria-current="page"], .tab[aria-selected="true"] {
+    .tab[aria-current="page"], .tab[aria-selected="true"], .tab[aria-pressed="true"] {
         background: var(--ds-primary);
         border-color: var(--ds-primary);
         color: var(--ds-on-primary);

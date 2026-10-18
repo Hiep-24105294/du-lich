@@ -1,11 +1,12 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import Icon from '@/Components/Icon.vue';
 import StatCard from '@/Components/StatCard.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -27,7 +28,7 @@ const fmt = (v) => (v != null ? number(v) : '—');
 </script>
 
 <template>
-    <Head :title="t('about.title')" />
+    <PageMeta :title="t('about.title')" fallback-key="about.intro" />
     <div class="container-page py-10">
         <header class="mx-auto max-w-3xl text-center">
             <p class="eyebrow">{{ t('about.eyebrow') }}</p>

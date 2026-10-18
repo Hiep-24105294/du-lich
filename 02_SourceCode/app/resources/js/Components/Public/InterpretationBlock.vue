@@ -16,6 +16,7 @@ const { date } = useFormat();
 <template>
     <section :aria-label="t('sites.interpretation')">
         <DepthTabs :current="depth" :available="availableDepths" class="mb-6" />
+        <div id="depth-panel" role="tabpanel" :aria-labelledby="`depth-tab-${depth}`" tabindex="0">
         <template v-if="interpretation">
             <!-- Bản dự phòng: backend trả locale khác locale trang khi chưa có bản dịch -->
             <p v-if="interpretation.locale && interpretation.locale !== locale" class="mb-4 rounded-lg bg-info-soft px-3 py-2 text-sm text-info" role="note">
@@ -28,7 +29,7 @@ const { date } = useFormat();
             <p v-if="interpretation.summary" class="mb-5 text-lg text-muted">{{ interpretation.summary }}</p>
             <div class="prose-heritage" v-html="interpretation.body_html"></div>
             <div v-if="interpretation.sources?.length" class="mt-8 rounded-xl bg-surface-2 p-4">
-                <h3 class="mb-2 font-body text-sm font-bold uppercase tracking-wider text-muted">{{ t('common.sources') }}</h3>
+                <component :is="interpretation.title ? 'h3' : 'h2'" class="mb-2 font-body text-sm font-bold uppercase tracking-wider text-muted">{{ t('common.sources') }}</component>
                 <ol class="list-decimal space-y-1 pl-5 text-sm">
                     <li v-for="(src, i) in interpretation.sources" :key="i" class="break-words">{{ src }}</li>
                 </ol>
@@ -39,5 +40,6 @@ const { date } = useFormat();
             </p>
         </template>
         <p v-else class="text-muted">{{ t('sites.no_interpretation') }}</p>
+        </div>
     </section>
 </template>

@@ -56,7 +56,7 @@ router.on('navigate', () => (sidebarOpen.value = false));
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
         >
             <div class="flex h-16 items-center justify-between border-b border-border px-4">
-                <Link :href="lr('/')" class="rounded-lg" :aria-label="t('nav.home')"><AppLogo /></Link>
+                <Link :href="lr('/')" class="rounded-lg" :aria-label="t('nav.home_logo')"><AppLogo /></Link>
                 <button type="button" class="btn btn-ghost btn-icon lg:hidden" :aria-label="t('common.close_menu')" @click="sidebarOpen = false">
                     <Icon name="close" />
                 </button>

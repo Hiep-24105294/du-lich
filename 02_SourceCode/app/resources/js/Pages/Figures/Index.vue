@@ -1,12 +1,12 @@
 <script setup>
 import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import FigureCard from '@/Components/FigureCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import { useT } from '@/Composables/useT';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     figures: { type: Object, default: () => ({ data: [], links: [] }) },
@@ -26,14 +26,14 @@ const total = computed(() => props.figures?.total ?? list.value.length);
 </script>
 
 <template>
-    <Head :title="t('figures.title')" />
+    <PageMeta :title="t('figures.title')" fallback-key="figures.description" />
     <div class="container-page py-8">
         <PageHeader :title="t('figures.title')" :eyebrow="t('figures.eyebrow')" :description="t('figures.description')" />
         <FilterBar :filters="filters" :fields="fields" />
         <p class="mt-5 text-sm text-muted" aria-live="polite">{{ t('figures.result_count', { n: total }) }}</p>
         <EmptyState v-if="!list.length" class="mt-4" icon="users" :title="t('figures.empty')" :description="t('sites.empty_hint')" />
         <div v-else class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <FigureCard v-for="f in list" :key="f.id" :figure="f" />
+            <FigureCard v-for="(f, i) in list" :key="f.id" :figure="f" :heading-level="2" :eager="i < 2" />
         </div>
         <Pagination :paginator="figures" />
     </div>

@@ -1,9 +1,10 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
+
 import PageHeader from '@/Components/PageHeader.vue';
 import TimelineView from '@/Components/TimelineView.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 defineProps({
     events: { type: Array, default: () => [] },
@@ -15,7 +16,7 @@ const { year } = useFormat();
 </script>
 
 <template>
-    <Head :title="t('timeline.title')" />
+    <PageMeta :title="t('timeline.title')" fallback-key="timeline.description" />
     <div class="container-page py-8">
         <PageHeader :title="t('timeline.title')" :eyebrow="t('timeline.eyebrow')" :description="t('timeline.description')" />
 

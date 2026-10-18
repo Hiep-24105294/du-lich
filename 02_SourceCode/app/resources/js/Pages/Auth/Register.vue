@@ -1,8 +1,9 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import FormField from '@/Components/FormField.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const { t } = useT();
 const lr = useLocaleRoute();
@@ -12,7 +13,7 @@ const submit = () => form.post(lr('/dang-ky'), { onFinish: () => form.reset('pas
 </script>
 
 <template>
-    <Head :title="t('auth.register_title')" />
+    <PageMeta :title="t('auth.register_title')" fallback-key="auth.register_intro" />
     <div class="card p-6 md:p-8">
         <h1 class="text-2xl font-bold">{{ t('auth.register_title') }}</h1>
         <p class="mt-1 text-sm text-muted">{{ t('auth.register_intro') }}</p>

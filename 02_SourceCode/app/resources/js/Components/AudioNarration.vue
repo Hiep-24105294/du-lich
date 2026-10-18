@@ -100,7 +100,7 @@ watch(audio, stop);
                 <Icon name="volume" />
             </span>
             <div class="min-w-0 flex-1">
-                <h3 class="font-body text-base font-bold">{{ t('audio.title') }}</h3>
+                <h2 class="font-body text-base font-bold">{{ t('audio.title') }}</h2>
                 <p class="text-xs text-muted">
                     {{ mode === 'file' ? t('audio.mode_file') : t('audio.mode_tts') }}
                     <span v-if="audio.duration_sec"> · {{ Math.round(audio.duration_sec / 60) || 1 }} {{ t('common.minutes_short') }}</span>

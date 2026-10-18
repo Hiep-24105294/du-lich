@@ -7,6 +7,10 @@ import { useFormat } from '@/Composables/useFormat';
 
 defineProps({
     route: { type: Object, required: true },
+    // Cấp tiêu đề theo ngữ cảnh: 2 khi danh sách đứng ngay dưới h1, 3 khi nằm trong một mục h2
+    headingLevel: { type: Number, default: 3 },
+    // Ảnh của thẻ đầu danh sách thường là LCP: tải ngay, không lazy
+    eager: { type: Boolean, default: false },
 });
 const { t, te } = useT();
 const { money, duration, dateTime, number } = useFormat();
@@ -15,15 +19,15 @@ const { money, duration, dateTime, number } = useFormat();
 <template>
     <article class="card card-hover flex h-full flex-col overflow-hidden">
         <Link :href="route.url" tabindex="-1" aria-hidden="true">
-            <CoverImage :src="route.cover?.url" :alt="route.cover?.caption || route.name" icon="route" ratio="aspect-[16/9]">
+            <CoverImage :src="route.cover?.url" :alt="route.cover?.caption || route.name" icon="route" ratio="aspect-[16/9]" :eager="eager">
                 <span v-if="route.difficulty" class="badge absolute left-3 top-3 shadow">{{ te('difficulty', route.difficulty) }}</span>
             </CoverImage>
         </Link>
         <div class="flex flex-1 flex-col gap-2 p-4">
             <p v-if="route.theme" class="eyebrow">{{ route.theme.name }}</p>
-            <h3 class="text-lg font-bold">
+            <component :is="`h${headingLevel}`" class="text-lg font-bold">
                 <Link :href="route.url" class="hover:text-primary">{{ route.name }}</Link>
-            </h3>
+            </component>
             <p class="line-clamp-2 text-sm text-muted">{{ route.description }}</p>
             <ul class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
                 <li class="inline-flex items-center gap-1"><Icon name="clock" :size="14" />{{ duration(route.duration_minutes) }}</li>

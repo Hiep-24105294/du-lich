@@ -104,19 +104,19 @@ function reset() {
         <EmptyState v-if="!filtered.length" icon="timeline" :title="t('timeline.empty')" :compact="compact" />
 
         <div v-for="group in groups" v-else :key="group.code" class="mb-8 last:mb-0">
-            <h3 v-if="!compact" class="sticky top-16 z-10 mb-4 flex flex-wrap items-baseline gap-x-3 bg-bg/95 py-2 text-xl font-bold backdrop-blur">
+            <h2 v-if="!compact" class="sticky top-16 z-10 mb-4 flex flex-wrap items-baseline gap-x-3 bg-bg/95 py-2 text-xl font-bold backdrop-blur">
                 {{ group.name }}
                 <span v-if="group.start != null || group.end != null" class="font-body text-sm font-medium text-muted">
                     {{ year(group.start) }}<template v-if="group.end != null"> – {{ year(group.end) }}</template>
                 </span>
-            </h3>
+            </h2>
             <ol class="relative ml-2 border-l-2 border-border pl-6" :class="compact ? 'space-y-4' : 'space-y-6'">
                 <li v-for="ev in group.items" :key="ev.id" class="relative">
                     <span class="absolute top-1.5 -translate-x-1/2 rounded-full ring-4 ring-bg" :class="dotClass(ev.importance)" style="left: calc(-1.5rem - 1px)" aria-hidden="true"></span>
                     <p class="font-display text-lg font-bold text-primary">{{ dateLabel(ev) }}</p>
                     <div :class="compact ? '' : 'card mt-1 p-4'">
                         <div class="flex flex-wrap items-center gap-2">
-                            <h4 class="font-body text-base font-semibold">{{ ev.title }}</h4>
+                            <h3 class="font-body text-base font-semibold">{{ ev.title }}</h3>
                             <span class="badge">{{ te('event_type', ev.event_type) }}</span>
                         </div>
                         <p v-if="ev.description" class="mt-1 text-sm text-muted" :class="compact ? 'line-clamp-2' : ''">{{ ev.description }}</p>

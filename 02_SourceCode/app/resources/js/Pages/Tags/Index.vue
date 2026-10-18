@@ -1,8 +1,9 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import { useT } from '@/Composables/useT';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 defineProps({
     groups: { type: Array, default: () => [] },
@@ -14,7 +15,7 @@ const sizeClass = (n) => (n >= 20 ? 'text-lg' : n >= 8 ? 'text-base' : 'text-sm'
 </script>
 
 <template>
-    <Head :title="t('tags.title')" />
+    <PageMeta :title="t('tags.title')" fallback-key="tags.description" />
     <div class="container-page py-8">
         <PageHeader :title="t('tags.title')" :eyebrow="t('tags.eyebrow')" :description="t('tags.description')" />
         <EmptyState v-if="!groups.length" icon="tag" :title="t('tags.empty')" />

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import FavoriteButton from '@/Components/FavoriteButton.vue';
 import MediaGallery from '@/Components/MediaGallery.vue';
@@ -17,6 +17,7 @@ import JsonLd from '@/Components/Public/JsonLd.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     artifact: { type: Object, required: true },
@@ -54,9 +55,7 @@ const info = computed(() => [
 </script>
 
 <template>
-    <Head :title="artifact.title">
-        <meta name="description" :content="artifact.summary || ''" />
-    </Head>
+    <PageMeta :title="artifact.title" :description="artifact.summary || ''" fallback-key="artifacts.description" :image="artifact.cover?.url" />
     <JsonLd :data="artifact.jsonld" />
 
     <div class="container-page py-6">

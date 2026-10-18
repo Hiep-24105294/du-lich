@@ -13,8 +13,16 @@ const VENDOR_GROUPS = [
     ['vendor-model-viewer', ['/node_modules/@google/model-viewer/', '/node_modules/three/', '/node_modules/lit', '/node_modules/@lit/', '/node_modules/@monogrid/']],
 ];
 
+// Component/composable dùng chung của khu công khai gộp một chunk: Apache phục vụ HTTP/1.1 (6 kết nối),
+// hàng chục chunk 1–2 KB trên đường găng làm chậm FCP/LCP trên mạng di động nhiều hơn là tiết kiệm được
+const SHARED_UI = ['/resources/js/Components/', '/resources/js/Composables/', '/resources/js/Utils/', '/resources/js/Layouts/PublicLayout.vue'];
+const ADMIN_UI = '/resources/js/Components/Admin/';
+
 function vendorChunk(id) {
-    if (!id.includes('/node_modules/')) return undefined;
+    if (!id.includes('/node_modules/')) {
+        if (id.includes(ADMIN_UI)) return undefined;
+        return SHARED_UI.some((p) => id.includes(p)) ? 'app-ui' : undefined;
+    }
     const group = VENDOR_GROUPS.find(([, paths]) => paths.some((p) => id.includes(p)));
     return group ? group[0] : undefined;
 }
@@ -22,7 +30,7 @@ function vendorChunk(id) {
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/css/fonts.css', 'resources/js/app.js'],
             refresh: true,
         }),
         vue({

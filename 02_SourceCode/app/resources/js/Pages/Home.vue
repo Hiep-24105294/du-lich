@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import Icon from '@/Components/Icon.vue';
 import SiteCard from '@/Components/SiteCard.vue';
 import ArtifactCard from '@/Components/ArtifactCard.vue';
@@ -12,6 +12,7 @@ import SectionHeading from '@/Components/Public/SectionHeading.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     featuredSites: { type: Array, default: () => [] },
@@ -36,6 +37,7 @@ const statItems = computed(() => [
     { key: 'intangible', icon: 'sparkles', value: props.stats?.intangible },
 ]);
 
+const BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 const hero = computed(() => props.featuredSites.find((s) => s.cover?.url) || null);
 
 const personas = ['visitor', 'student', 'researcher'];
@@ -43,7 +45,7 @@ const personaIcon = { visitor: 'map', student: 'book', researcher: 'file' };
 </script>
 
 <template>
-    <Head :title="t('home.meta_title')" />
+    <PageMeta :title="t('home.meta_title')" fallback-key="home.hero_subtitle" :image="hero?.cover?.url" />
 
     <!-- Hero -->
     <section class="relative overflow-hidden border-b border-border bg-surface-2">
@@ -75,7 +77,11 @@ const personaIcon = { visitor: 'map', student: 'book', researcher: 'file' };
             <div class="relative hidden md:block">
                 <div class="absolute -right-6 -top-6 h-40 w-40 rounded-full border-2 border-dashed border-accent opacity-60" aria-hidden="true"></div>
                 <figure v-if="hero" class="card relative overflow-hidden rounded-[var(--radius-lg)]">
-                    <img :src="hero.cover.url" :alt="hero.cover.caption || hero.title" class="aspect-[4/5] w-full object-cover lg:aspect-[4/4.5]" />
+                    <!-- Khối này ẩn trên mobile: <picture> chỉ tải ảnh thật từ 768px, mobile nhận ảnh rỗng 1 px -->
+                    <picture>
+                        <source media="(min-width: 768px)" :srcset="hero.cover.url" />
+                        <img :src="BLANK_IMG" :alt="hero.cover.caption || hero.title" width="640" height="800" fetchpriority="high" decoding="async" class="aspect-[4/5] w-full object-cover lg:aspect-[4/4.5]" />
+                    </picture>
                     <figcaption class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5 text-white">
                         <p class="text-xs uppercase tracking-widest opacity-80">{{ hero.province?.name }}</p>
                         <Link :href="hero.url" class="font-display text-2xl font-bold hover:underline">{{ hero.title }}</Link>

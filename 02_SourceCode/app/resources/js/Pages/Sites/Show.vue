@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import FavoriteButton from '@/Components/FavoriteButton.vue';
 import MediaGallery from '@/Components/MediaGallery.vue';
@@ -19,6 +19,7 @@ import JsonLd from '@/Components/Public/JsonLd.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     site: { type: Object, required: true },
@@ -56,11 +57,7 @@ const directions = computed(() =>
 </script>
 
 <template>
-    <Head :title="site.title">
-        <meta name="description" :content="site.summary || ''" />
-        <meta property="og:title" :content="site.title" />
-        <meta v-if="site.cover?.url" property="og:image" :content="site.cover.url" />
-    </Head>
+    <PageMeta :title="site.title" :description="site.summary || ''" fallback-key="sites.description" :image="site.cover?.url" />
     <JsonLd :data="site.jsonld" />
 
     <!-- Hero ảnh bìa -->

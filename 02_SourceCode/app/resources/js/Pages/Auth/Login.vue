@@ -1,8 +1,9 @@
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import FormField from '@/Components/FormField.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 defineProps({
     status: { type: String, default: null },
@@ -17,7 +18,7 @@ const submit = () => form.post(lr('/dang-nhap'), { onFinish: () => form.reset('p
 </script>
 
 <template>
-    <Head :title="t('auth.login_title')" />
+    <PageMeta :title="t('auth.login_title')" fallback-key="auth.login_intro" />
     <div class="card p-6 md:p-8">
         <h1 class="text-2xl font-bold">{{ t('auth.login_title') }}</h1>
         <p class="mt-1 text-sm text-muted">{{ t('auth.login_intro') }}</p>

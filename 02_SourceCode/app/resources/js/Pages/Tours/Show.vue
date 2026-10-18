@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import CoverImage from '@/Components/CoverImage.vue';
 import MapView from '@/Components/MapView.vue';
@@ -11,6 +11,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     route: { type: Object, required: true },
@@ -69,7 +70,7 @@ function submit() {
 </script>
 
 <template>
-    <Head :title="route.name" />
+    <PageMeta :title="route.name" :description="route.description || ''" fallback-key="tours.intro" :image="route.cover?.url" />
     <div class="container-page py-6">
         <Breadcrumbs :items="[{ label: t('nav.home'), href: lr('/') }, { label: t('nav.tours'), href: lr('/tuyen-tham-quan') }, { label: route.name }]" />
 

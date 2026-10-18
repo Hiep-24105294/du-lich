@@ -43,7 +43,7 @@ watch(mobileOpen, (v) => document.body.classList.toggle('overflow-hidden', v));
 
         <header class="sticky top-0 z-[1000] border-b border-border bg-bg/90 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
             <div class="container-page flex h-16 items-center gap-3">
-                <Link :href="lr('/')" class="shrink-0 rounded-lg" :aria-label="t('nav.home')">
+                <Link :href="lr('/')" class="shrink-0 rounded-lg" :aria-label="t('nav.home_logo')">
                     <AppLogo />
                 </Link>
 

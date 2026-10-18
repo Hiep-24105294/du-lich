@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import FormField from '@/Components/FormField.vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     types: { type: Array, default: () => [] },
@@ -74,7 +75,7 @@ function submit() {
 </script>
 
 <template>
-    <Head :title="t('contribution.create_title')" />
+    <PageMeta :title="t('contribution.create_title')" fallback-key="contribution.create_intro" />
     <div class="container-page max-w-3xl py-8">
         <PageHeader :eyebrow="t('nav.contribute')" :title="t('contribution.create_title')" :description="t('contribution.create_intro')" />
 

@@ -20,6 +20,7 @@ const failed = ref(false);
             :src="src"
             :alt="alt"
             :loading="eager ? 'eager' : 'lazy'"
+            :fetchpriority="eager ? 'high' : undefined"
             decoding="async"
             class="h-full w-full object-cover"
             @error="failed = true"

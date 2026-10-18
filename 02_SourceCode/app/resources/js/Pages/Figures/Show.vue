@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import FavoriteButton from '@/Components/FavoriteButton.vue';
 import MediaGallery from '@/Components/MediaGallery.vue';
@@ -14,6 +14,7 @@ import InfoList from '@/Components/Public/InfoList.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     figure: { type: Object, required: true },
@@ -37,9 +38,7 @@ const info = computed(() => [
 </script>
 
 <template>
-    <Head :title="figure.title">
-        <meta name="description" :content="figure.summary || ''" />
-    </Head>
+    <PageMeta :title="figure.title" :description="figure.summary || ''" fallback-key="figures.description" :image="figure.portrait || ''" />
 
     <div class="container-page py-6">
         <Breadcrumbs :items="[{ label: t('nav.home'), href: lr('/') }, { label: t('nav.figures'), href: lr('/nhan-vat') }, { label: figure.title }]" />

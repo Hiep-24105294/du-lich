@@ -17,7 +17,7 @@ const app = computed(() => page.props.app || {});
 <template>
     <div class="flex min-h-screen flex-col bg-bg">
         <header class="container-page flex h-16 items-center justify-between">
-            <Link :href="lr('/')" class="rounded-lg" :aria-label="t('nav.home')"><AppLogo /></Link>
+            <Link :href="lr('/')" class="rounded-lg" :aria-label="t('nav.home_logo')"><AppLogo /></Link>
             <div class="flex items-center gap-1">
                 <LocaleSwitch />
                 <ThemeToggle />

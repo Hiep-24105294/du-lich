@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import Icon from '@/Components/Icon.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import CoverImage from '@/Components/CoverImage.vue';
@@ -9,6 +9,7 @@ import HighlightText from '@/Components/Public/HighlightText.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import { useFormat } from '@/Composables/useFormat';
+import PageMeta from '@/Components/Public/PageMeta.vue';
 
 const props = defineProps({
     query: { type: String, default: '' },
@@ -45,7 +46,7 @@ const visible = computed(() => (typeFilter.value ? props.results.filter((r) => r
 </script>
 
 <template>
-    <Head :title="query ? t('search.title_with', { q: query }) : t('search.title')" />
+    <PageMeta :title="query ? t('search.title_with', { q: query }) : t('search.title')" fallback-key="search.subtitle" />
     <div class="container-page py-8">
         <div class="mx-auto max-w-3xl">
             <h1 class="text-center text-3xl font-bold md:text-4xl">{{ t('search.title') }}</h1>
@@ -85,8 +86,8 @@ const visible = computed(() => (typeFilter.value ? props.results.filter((r) => r
             </div>
 
             <div v-if="results.length" class="mt-6 flex flex-wrap gap-2" role="group" :aria-label="t('search.filter_type')">
-                <button type="button" class="tab" :aria-pressed="typeFilter === ''" :aria-selected="typeFilter === ''" @click="typeFilter = ''">{{ t('common.all') }} ({{ results.length }})</button>
-                <button v-for="tp in ['site', 'artifact', 'figure']" v-show="counts[tp]" :key="tp" type="button" class="tab" :aria-pressed="typeFilter === tp" :aria-selected="typeFilter === tp" @click="typeFilter = tp">
+                <button type="button" class="tab" :aria-pressed="typeFilter === ''" @click="typeFilter = ''">{{ t('common.all') }} ({{ results.length }})</button>
+                <button v-for="tp in ['site', 'artifact', 'figure']" v-show="counts[tp]" :key="tp" type="button" class="tab" :aria-pressed="typeFilter === tp" @click="typeFilter = tp">
                     {{ te('subject_type', tp) }} ({{ counts[tp] || 0 }})
                 </button>
             </div>
