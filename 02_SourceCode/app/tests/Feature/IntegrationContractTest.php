@@ -238,9 +238,26 @@ class IntegrationContractTest extends TestCase
     {
         $csp = $this->get('/vi')->headers->get('Content-Security-Policy');
 
-        foreach (['https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'https://*.tile.openstreetmap.org',
-            'https://unpkg.com', 'https://modelviewer.dev', "'nonce-", "style-src 'self' 'unsafe-inline'", 'img-src \'self\' data: blob:', 'worker-src \'self\' blob:'] as $needle) {
+        foreach (['https://tile.openstreetmap.org', 'https://modelviewer.dev', "'nonce-", "'wasm-unsafe-eval'",
+            "style-src 'self' 'unsafe-inline'", 'img-src \'self\' data: blob:', 'worker-src \'self\' blob:',
+            "connect-src 'self' blob:", 'https://www.gstatic.com'] as $needle) {
             $this->assertStringContainsString($needle, $csp);
         }
+        // Font và model-viewer tự host (yêu cầu frontend 18/10): không còn CDN bên thứ ba cho script/style/font
+        foreach (['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'ajax.googleapis.com', "'unsafe-eval'"] as $needle) {
+            $this->assertStringNotContainsString($needle, $csp);
+        }
+    }
+
+    public function test_vite_prefetch_is_disabled(): void
+    {
+        // Prefetch toàn bộ chunk động (model-viewer ~1 MB) làm chậm LCP mobile
+        if (! is_file(public_path('build/manifest.json'))) {
+            $this->markTestSkipped('Chưa build Vite (npm run build).');
+        }
+        $this->withVite();
+        $html = $this->get('/vi')->assertOk()->getContent();
+        $this->assertStringContainsString('/build/assets/', $html);
+        $this->assertStringNotContainsString('window.addEventListener(\'load\'', $html);
     }
 }

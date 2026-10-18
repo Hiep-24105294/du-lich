@@ -14,7 +14,6 @@ class UserSeeder extends Seeder
         $password = (string) config('disanso.seed_demo_password', 'DiSan@2026');
         $roles = Role::pluck('id', 'code');
 
-        $accounts = [
         // Số điện thoại mô phỏng (đầu 09) để form đặt lịch điền sẵn contact_phone khi demo
         $accounts = [
             ['admin@disanso.test', 'Quản trị viên', Role::ADMIN, null, '0912000001'],

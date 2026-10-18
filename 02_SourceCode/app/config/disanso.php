@@ -29,4 +29,10 @@ return [
     'seed_demo_password' => env('SEED_DEMO_PASSWORD', 'DiSan@2026'),
 
     'quality_cache_minutes' => 10,
+
+    // Bộ đệm dữ liệu trang công khai (giây); store "file" để không thêm truy vấn MySQL. TTL 0 = tắt.
+    'page_cache' => [
+        'store' => env('PAGE_CACHE_STORE', 'file'),
+        'ttl' => (int) env('PAGE_CACHE_TTL', 60),
+    ],
 ];

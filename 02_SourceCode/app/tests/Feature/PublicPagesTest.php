@@ -55,6 +55,11 @@ class PublicPagesTest extends TestCase
         $this->get("/vi/di-san/{$site->slug}");
 
         $this->assertSame(1, PageView::count());
+        // view_count cộng theo lô mỗi phút (app:sync-view-counts), không UPDATE theo từng lượt xem
+        $this->assertSame(0, $site->fresh()->view_count);
+        $this->artisan('app:sync-view-counts')->assertSuccessful();
+        $this->assertSame(1, $site->fresh()->view_count);
+        $this->artisan('app:sync-view-counts')->assertSuccessful(); // chạy lại không đếm trùng
         $this->assertSame(1, $site->fresh()->view_count);
         $this->assertSame('site', PageView::first()->subject_type);
     }
@@ -88,6 +93,16 @@ class PublicPagesTest extends TestCase
         $this->get('/vi/ban-do')->assertOk()->assertInertia(fn (Assert $p) => $p->component('Map/Index')->where('geojson.type', 'FeatureCollection'));
         $this->get('/vi/the')->assertOk()->assertInertia(fn (Assert $p) => $p->component('Tags/Index')->has('groups'));
         $this->get('/vi/gioi-thieu')->assertOk()->assertInertia(fn (Assert $p) => $p->component('About')->has('stats'));
+    }
+
+    public function test_tour_index_province_count_is_number_of_published_routes(): void
+    {
+        HeritageSite::factory()->count(5)->create(); // cùng tỉnh mặc định: 5 di sản
+        TourSlot::factory()->create();               // 1 tuyến công bố
+        \App\Models\TourRoute::factory()->draft()->create();
+
+        $this->get('/vi/tuyen-tham-quan')->assertInertia(fn (Assert $p) => $p->component('Tours/Index')
+            ->has('provinces', 1)->where('provinces.0.code', 'HN')->where('provinces.0.count', 1));
     }
 
     public function test_member_can_toggle_favorite(): void

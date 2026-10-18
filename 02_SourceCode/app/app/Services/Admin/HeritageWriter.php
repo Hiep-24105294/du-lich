@@ -9,6 +9,7 @@ use App\Models\Interpretation;
 use App\Models\TimelineEvent;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\PageCache;
 use App\Services\PeriodResolver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -60,6 +61,8 @@ class HeritageWriter
         $model->delete();
         $this->audit->log('admin.'.$model->getMorphClass().'.delete', $model, ['slug' => $model->slug], $user);
         Cache::forget('stats:overview');
+        // Sau commit (thẻ/pivot không phát sự kiện model) → làm mới bộ đệm trang công khai
+        app(PageCache::class)->flush();
     }
 
     private function save(Model $model, array $fields, array $data, User $user, ?callable $extra = null): Model
@@ -82,6 +85,8 @@ class HeritageWriter
 
         $this->audit->log('admin.'.$model->getMorphClass().'.'.($isNew ? 'create' : 'update'), $model, ['slug' => $model->slug], $user);
         Cache::forget('stats:overview');
+        // Sau commit (thẻ/pivot không phát sự kiện model) → làm mới bộ đệm trang công khai
+        app(PageCache::class)->flush();
 
         return $model;
     }

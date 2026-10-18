@@ -44,7 +44,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // ForceJsonResponse đứng đầu để cả lỗi 429 của throttle cũng là JSON
         $middleware->api(prepend: [ForceJsonResponse::class, 'throttle:api']);
 
-        $middleware->redirectGuestsTo(fn (Request $request) => localized_route('login'));
+        // auth có thể chạy trước SetLocale (thứ tự ưu tiên middleware) → lấy locale từ đoạn đầu URL
+        $middleware->redirectGuestsTo(fn (Request $request) => localized_route('login', [
+            'locale' => in_array($request->segment(1), SetLocale::SUPPORTED, true) ? $request->segment(1) : app()->getLocale(),
+        ]));
         $middleware->redirectUsersTo(fn (Request $request) => localized_route('account.dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

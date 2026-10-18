@@ -11,12 +11,21 @@ use App\Models\HeritageSite;
 use App\Models\HistoricalFigure;
 use App\Models\TourRoute;
 use App\Services\LookupService;
+use App\Services\PageCache;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class HomeController extends Controller
 {
-    public function __invoke(LookupService $lookup): Response
+    public function __invoke(LookupService $lookup, PageCache $cache): Response
+    {
+        // Dữ liệu trang chủ giống nhau với mọi khách → đệm ngắn theo locale
+        $data = $cache->remember('home', fn () => $this->data());
+
+        return Inertia::render('Home', $data + ['stats' => $lookup->stats()]);
+    }
+
+    private function data(): array
     {
         $featured = HeritageSite::published()->with(SiteCardResource::eager())
             ->orderByRaw("FIELD(recognition_level, 'unesco', 'quoc_gia_dac_biet', 'quoc_gia', 'cap_tinh', 'chua_xep_hang')")
@@ -27,13 +36,12 @@ class HomeController extends Controller
         $routes = TourRoute::published()->with(RouteCardResource::eager())->withCount('stops')
             ->whereHas('slots', fn ($q) => $q->upcoming())->limit(3)->get();
 
-        return Inertia::render('Home', [
+        return [
             'featuredSites' => SiteCardResource::list($featured),
             'latestArtifacts' => ArtifactCardResource::list($artifacts),
             'upcomingRoutes' => RouteCardResource::list($routes),
             'featuredFigures' => FigureCardResource::list($figures),
-            'stats' => $lookup->stats(),
             'mapPoints' => MapPoints::all(),
-        ]);
+        ];
     }
 }
