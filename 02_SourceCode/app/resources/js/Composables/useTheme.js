@@ -41,12 +41,12 @@ export function useTheme() {
 
     const setTheme = (theme) => {
         apply(theme);
-        const user = page.props.auth?.user;
-        if (!user) return;
+        if (!page.props.auth?.user) return;
         const locale = page.props.locale || 'vi';
+        // Chỉ gửi theme: backend cập nhật từng phần và quay lại trang cũ (không ghi đè sđt/ngôn ngữ)
         router.patch(
             `/${locale}/tai-khoan/ho-so`,
-            { name: user.name, phone: user.phone ?? null, locale: user.locale || locale, theme },
+            { theme },
             { preserveScroll: true, preserveState: true, only: ['auth', 'flash'] },
         );
     };

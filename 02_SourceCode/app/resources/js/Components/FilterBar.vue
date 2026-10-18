@@ -17,11 +17,18 @@ const props = defineProps({
 const page = usePage();
 const { t } = useT();
 
-const state = reactive(Object.fromEntries(props.fields.map((f) => [f.name, props.filters?.[f.name] ?? (f.type === 'checkbox' ? false : '')])));
+// Query string trả về "1"/"true" cho checkbox: chuẩn hóa về boolean để ô được tick đúng
+function initial(field, filters) {
+    const v = filters?.[field.name];
+    if (field.type === 'checkbox') return v === true || v === 1 || v === '1' || v === 'true';
+    return v ?? '';
+}
+
+const state = reactive(Object.fromEntries(props.fields.map((f) => [f.name, initial(f, props.filters)])));
 
 watch(
     () => props.filters,
-    (f) => props.fields.forEach((fd) => (state[fd.name] = f?.[fd.name] ?? (fd.type === 'checkbox' ? false : ''))),
+    (f) => props.fields.forEach((fd) => (state[fd.name] = initial(fd, f))),
 );
 
 function clean(obj) {

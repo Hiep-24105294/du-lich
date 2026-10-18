@@ -61,7 +61,7 @@ const opt = computed(() => ({
 
 function submit() {
     form.transform((data) => ({ ...data, stops: data.stops.map((s, i) => ({ ...s, stop_order: i + 1 })) }));
-    if (isEdit.value) form.put(lr(`/quan-tri/tuyen-tham-quan/${r.id}`), { preserveScroll: true });
+    if (isEdit.value) form.put(lr(`/quan-tri/tuyen-tham-quan/${r.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/tuyen-tham-quan'), { preserveScroll: true });
 }
 
@@ -108,7 +108,7 @@ const title = computed(() => (isEdit.value ? t('admin.tours.edit_title', { name:
     </form>
 
     <FormSection v-if="isEdit" :title="t('admin.tours.slots')" :description="t('admin.tours.slots_description')" class="mt-6">
-        <SlotsManager :route-id="route.id" :slots="route.slots || []" :default-capacity="form.default_capacity" :default-duration="form.duration_minutes" />
+        <SlotsManager :route-slug="route.slug" :slots="route.slots || []" :default-capacity="form.default_capacity" :default-duration="form.duration_minutes" />
     </FormSection>
     <p v-else class="mt-6 text-sm text-muted">{{ t('admin.tours.slots_after_create') }}</p>
 </template>

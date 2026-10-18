@@ -9,6 +9,7 @@ import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
+import { enumOptions } from '@/Utils/options';
 
 const props = defineProps({
     sites: { type: Object, default: () => ({ data: [], links: [] }) },
@@ -17,6 +18,8 @@ const props = defineProps({
     periods: { type: Array, default: () => [] },
     tags: { type: Array, default: () => [] },
     mapPoints: { type: Array, default: () => [] },
+    types: { type: Array, default: () => [] },
+    levels: { type: Array, default: () => [] },
 });
 const { t, te } = useT();
 
@@ -27,8 +30,8 @@ const SORTS = ['newest', 'name', 'popular', 'oldest'];
 const fields = computed(() => [
     { name: 'q', type: 'search', label: t('common.keyword'), placeholder: t('sites.search_placeholder') },
     { name: 'province', type: 'select', label: t('common.province'), options: props.provinces.map((p) => ({ value: p.code, label: p.count != null ? `${p.name} (${p.count})` : p.name })) },
-    { name: 'type', type: 'select', label: t('sites.type'), options: SITE_TYPES.map((c) => ({ value: c, label: te('site_type', c) })) },
-    { name: 'level', type: 'select', label: t('sites.level'), options: LEVELS.map((c) => ({ value: c, label: te('recognition_level', c) })) },
+    { name: 'type', type: 'select', label: t('sites.type'), options: enumOptions(props.types.length ? props.types : SITE_TYPES, te, 'site_type') },
+    { name: 'level', type: 'select', label: t('sites.level'), options: enumOptions(props.levels.length ? props.levels : LEVELS, te, 'recognition_level') },
     { name: 'period', type: 'select', label: t('common.period'), options: props.periods.map((p) => ({ value: p.code, label: p.name })) },
     { name: 'tag', type: 'select', label: t('sites.theme'), options: props.tags.map((tg) => ({ value: tg.slug, label: tg.name })) },
     { name: 'sort', type: 'select', label: t('common.sort'), placeholder: t('sites.sort_default'), options: SORTS.map((s) => ({ value: s, label: t(`sites.sort_${s}`) })) },
@@ -36,7 +39,7 @@ const fields = computed(() => [
 
 const view = ref('grid'); // grid | map
 const list = computed(() => props.sites?.data || []);
-const total = computed(() => props.sites?.total ?? props.sites?.meta?.total ?? list.value.length);
+const total = computed(() => props.sites?.total ?? list.value.length);
 </script>
 
 <template>

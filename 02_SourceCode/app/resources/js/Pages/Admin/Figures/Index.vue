@@ -51,7 +51,7 @@ const columns = computed(() => [
     <FilterBar :filters="filters" :fields="fields" class="mb-4" />
     <DataTable :columns="columns" :rows="rows" :caption="t('admin.figures.title')" :empty-text="t('admin.figures.empty')">
         <template #cell-title_vi="{ row }">
-            <Link :href="lr(`/quan-tri/nhan-vat/${row.id}/sua`)" class="font-semibold hover:text-primary">{{ row.title_vi || row.slug }}</Link>
+            <Link :href="lr(`/quan-tri/nhan-vat/${row.slug}/sua`)" class="font-semibold hover:text-primary">{{ row.title_vi || row.slug }}</Link>
             <p v-if="row.title_en" class="text-xs text-muted">{{ row.title_en }}</p>
         </template>
         <template #cell-figure_type="{ value }">{{ te('figure_type', value) }}</template>
@@ -65,10 +65,10 @@ const columns = computed(() => [
         </template>
         <template #cell-updated_at="{ value }"><span class="whitespace-nowrap">{{ date(value) }}</span></template>
         <template #actions="{ row }">
-            <Link :href="lr(`/quan-tri/nhan-vat/${row.id}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.title_vi}`">
+            <Link :href="lr(`/quan-tri/nhan-vat/${row.slug}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.title_vi}`">
                 <Icon name="edit" :size="18" />
             </Link>
-            <DeleteAction :url="lr(`/quan-tri/nhan-vat/${row.id}`)" :name="row.title_vi || row.slug" />
+            <DeleteAction :url="lr(`/quan-tri/nhan-vat/${row.slug}`)" :name="row.title_vi || row.slug" />
         </template>
     </DataTable>
     <Pagination :paginator="figures" />

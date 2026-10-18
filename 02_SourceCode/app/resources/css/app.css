@@ -104,6 +104,10 @@
 }
 
 @layer base {
+    /* Phần tử con của grid mặc định min-width:auto làm tràn ngang ở 375px khi có chữ dài/truncate */
+    :where(.grid) > * {
+        min-width: 0;
+    }
     html {
         -webkit-text-size-adjust: 100%;
     }

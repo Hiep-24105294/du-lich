@@ -21,7 +21,7 @@ const props = defineProps({
 const { t, te } = useT();
 const { money, dateTime, date } = useFormat();
 const lr = useLocaleRoute();
-const { user, canAccessAdmin } = usePermissions();
+const { user, canAccessAdmin, adminHome } = usePermissions();
 
 const FAVORITE_ICON = { site: 'landmark', artifact: 'vase', figure: 'user' };
 const activeBookings = computed(() => props.bookings.filter((b) => ['held', 'pending_payment'].includes(b.status)).length);
@@ -34,7 +34,7 @@ const activeBookings = computed(() => props.bookings.filter((b) => ['held', 'pen
             <template #actions>
                 <Link :href="lr('/tai-khoan/ho-so')" class="btn"><Icon name="user" :size="18" />{{ t('nav.profile') }}</Link>
                 <Link :href="lr('/dong-gop/moi')" class="btn btn-primary"><Icon name="upload" :size="18" />{{ t('nav.contribute') }}</Link>
-                <Link v-if="canAccessAdmin" :href="lr('/quan-tri')" class="btn"><Icon name="shield" :size="18" />{{ t('nav.admin') }}</Link>
+                <Link v-if="canAccessAdmin" :href="lr(adminHome)" class="btn"><Icon name="shield" :size="18" />{{ t('nav.admin') }}</Link>
             </template>
         </PageHeader>
 

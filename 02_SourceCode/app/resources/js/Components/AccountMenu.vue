@@ -8,7 +8,7 @@ import { usePermissions } from '@/Composables/usePermissions';
 
 const { t, te } = useT();
 const lr = useLocaleRoute();
-const { user, canAccessAdmin } = usePermissions();
+const { user, canAccessAdmin, adminHome } = usePermissions();
 
 const open = ref(false);
 const root = ref(null);
@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
             <Link :href="lr('/dong-gop/moi')" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-2" role="menuitem" @click="close">
                 <Icon name="upload" :size="18" /> {{ t('nav.contribute') }}
             </Link>
-            <Link v-if="canAccessAdmin" :href="lr('/quan-tri')" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-2" role="menuitem" @click="close">
+            <Link v-if="canAccessAdmin" :href="lr(adminHome)" class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-surface-2" role="menuitem" @click="close">
                 <Icon name="shield" :size="18" /> {{ t('nav.admin') }}
             </Link>
             <Link

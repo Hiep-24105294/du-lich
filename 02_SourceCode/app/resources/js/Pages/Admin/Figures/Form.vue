@@ -58,7 +58,7 @@ const sections = computed(() => [
 
 function submit() {
     form.transform((data) => ({ ...data, interpretations: serializeInterpretations(data.interpretations) }));
-    if (isEdit.value) form.put(lr(`/quan-tri/nhan-vat/${f.id}`), { preserveScroll: true });
+    if (isEdit.value) form.put(lr(`/quan-tri/nhan-vat/${f.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/nhan-vat'), { preserveScroll: true });
 }
 

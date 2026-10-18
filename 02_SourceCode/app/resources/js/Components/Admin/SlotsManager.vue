@@ -11,7 +11,7 @@ import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 
 /** Khung giờ của tuyến: danh sách + xóa (khi chưa có booking) + form thêm. */
 const props = defineProps({
-    routeId: { type: Number, required: true },
+    routeSlug: { type: String, required: true },
     slots: { type: Array, default: () => [] },
     defaultCapacity: { type: [Number, String], default: 20 },
     defaultDuration: { type: [Number, String], default: 120 },
@@ -28,7 +28,7 @@ const form = useForm({
     language: 'vi',
 });
 const languageOptions = ['vi', 'en'].map((c) => ({ value: c, label: te('locale', c) }));
-const base = `/quan-tri/tuyen-tham-quan/${props.routeId}/khung-gio`;
+const base = `/quan-tri/tuyen-tham-quan/${props.routeSlug}/khung-gio`;
 
 function submit() {
     form.post(lr(base), { preserveScroll: true, onSuccess: () => form.reset('starts_at', 'guide_name') });

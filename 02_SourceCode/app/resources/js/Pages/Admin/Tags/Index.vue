@@ -46,17 +46,17 @@ const parentName = (p) => (p && typeof p === 'object' ? p.name || p.name_vi || p
     <FilterBar :filters="filters" :fields="fields" class="mb-4" />
     <DataTable :columns="columns" :rows="rows" :caption="t('admin.tags.title')" :empty-text="t('admin.tags.empty')">
         <template #cell-name_vi="{ row }">
-            <Link :href="lr(`/quan-tri/the/${row.id}/sua`)" class="font-semibold hover:text-primary">{{ row.name_vi || row.name }}</Link>
+            <Link :href="lr(`/quan-tri/the/${row.slug}/sua`)" class="font-semibold hover:text-primary">{{ row.name_vi || row.name }}</Link>
             <p v-if="row.name_en" class="text-xs text-muted">{{ row.name_en }}</p>
         </template>
         <template #cell-slug="{ value }"><code class="text-xs">{{ value }}</code></template>
         <template #cell-group="{ row }"><span class="badge">{{ te('tag_group', row.group || row.tag_group) }}</span></template>
         <template #cell-parent="{ value }">{{ parentName(value) || '—' }}</template>
         <template #actions="{ row }">
-            <Link :href="lr(`/quan-tri/the/${row.id}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.name_vi || row.name}`">
+            <Link :href="lr(`/quan-tri/the/${row.slug}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.name_vi || row.name}`">
                 <Icon name="edit" :size="18" />
             </Link>
-            <DeleteAction :url="lr(`/quan-tri/the/${row.id}`)" :name="row.name_vi || row.name" />
+            <DeleteAction :url="lr(`/quan-tri/the/${row.slug}`)" :name="row.name_vi || row.name" />
         </template>
     </DataTable>
     <Pagination v-if="isPaginated" :paginator="tags" />

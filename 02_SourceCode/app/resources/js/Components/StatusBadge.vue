@@ -6,6 +6,8 @@ import { useT } from '@/Composables/useT';
 const props = defineProps({
     status: { type: String, required: true },
     group: { type: String, default: 'status' },
+    // Nhãn đã dịch sẵn từ backend (vd status_label); không có thì tra enums
+    label: { type: String, default: null },
 });
 const { te } = useT();
 const TONES = {
@@ -18,5 +20,5 @@ const tone = computed(() => TONES[props.status] || '');
 </script>
 
 <template>
-    <span class="badge" :class="tone">{{ te(group, status) }}</span>
+    <span class="badge" :class="tone">{{ label || te(group, status) }}</span>
 </template>

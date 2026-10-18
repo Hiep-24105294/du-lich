@@ -17,6 +17,7 @@ import { STATUS_CODES, rowsOf } from '@/Utils/options';
 const props = defineProps({
     routes: { type: [Array, Object], default: () => [] },
     filters: { type: Object, default: () => ({}) },
+    canCreate: { type: Boolean, default: true },
 });
 const { t, te } = useT();
 const { money, duration, dateTime } = useFormat();
@@ -45,13 +46,13 @@ const ownerName = (o) => (o && typeof o === 'object' ? o.name : o);
     <Head :title="t('admin.tours.title')" />
     <PageHeader :title="t('admin.tours.title')" :description="isStaff ? t('admin.tours.description') : t('admin.tours.description_own')">
         <template #actions>
-            <Link :href="lr('/quan-tri/tuyen-tham-quan/moi')" class="btn btn-primary"><Icon name="plus" :size="18" />{{ t('admin.tours.create') }}</Link>
+            <Link v-if="canCreate" :href="lr('/quan-tri/tuyen-tham-quan/moi')" class="btn btn-primary"><Icon name="plus" :size="18" />{{ t('admin.tours.create') }}</Link>
         </template>
     </PageHeader>
     <FilterBar :filters="filters" :fields="fields" class="mb-4" />
     <DataTable :columns="columns" :rows="rows" :caption="t('admin.tours.title')" :empty-text="t('admin.tours.empty')">
         <template #cell-name="{ row }">
-            <Link :href="lr(`/quan-tri/tuyen-tham-quan/${row.id}/sua`)" class="font-semibold hover:text-primary">{{ row.name || row.name_vi || row.slug }}</Link>
+            <Link :href="lr(`/quan-tri/tuyen-tham-quan/${row.slug}/sua`)" class="font-semibold hover:text-primary">{{ row.name || row.name_vi || row.slug }}</Link>
             <p v-if="row.province" class="text-xs text-muted">{{ row.province.name || row.province }}</p>
         </template>
         <template #cell-duration_minutes="{ value }"><span class="whitespace-nowrap">{{ duration(value) }}</span></template>
@@ -60,10 +61,10 @@ const ownerName = (o) => (o && typeof o === 'object' ? o.name : o);
         <template #cell-status="{ value }"><StatusBadge v-if="value" :status="value" /></template>
         <template #cell-owner="{ value }">{{ ownerName(value) || '—' }}</template>
         <template #actions="{ row }">
-            <Link :href="lr(`/quan-tri/tuyen-tham-quan/${row.id}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.name}`">
+            <Link :href="lr(`/quan-tri/tuyen-tham-quan/${row.slug}/sua`)" class="btn btn-ghost btn-sm btn-icon" :aria-label="`${t('common.edit')} ${row.name}`">
                 <Icon name="edit" :size="18" />
             </Link>
-            <DeleteAction :url="lr(`/quan-tri/tuyen-tham-quan/${row.id}`)" :name="row.name || row.slug" />
+            <DeleteAction :url="lr(`/quan-tri/tuyen-tham-quan/${row.slug}`)" :name="row.name || row.slug" />
         </template>
     </DataTable>
     <Pagination v-if="isPaginated" :paginator="routes" />

@@ -7,11 +7,13 @@ import RouteCard from '@/Components/RouteCard.vue';
 import Pagination from '@/Components/Pagination.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import { useT } from '@/Composables/useT';
+import { enumOptions } from '@/Utils/options';
 
 const props = defineProps({
     routes: { type: Object, default: () => ({ data: [] }) },
     filters: { type: Object, default: () => ({}) },
     provinces: { type: Array, default: () => [] },
+    difficulties: { type: Array, default: () => [] },
 });
 const { t, te } = useT();
 
@@ -21,13 +23,13 @@ const fields = computed(() => [
         name: 'province',
         type: 'select',
         label: t('common.province'),
-        options: props.provinces.map((p) => ({ value: p.code, label: p.count != null ? `${p.name} (${p.count})` : p.name })),
+        options: props.provinces.map((p) => ({ value: p.code, label: p.name })),
     },
     {
         name: 'difficulty',
         type: 'select',
         label: t('tours.difficulty'),
-        options: ['de', 'vua', 'kho'].map((c) => ({ value: c, label: te('difficulty', c) })),
+        options: enumOptions(props.difficulties.length ? props.difficulties : ['de', 'vua', 'kho'], te, 'difficulty'),
     },
 ]);
 const items = computed(() => props.routes?.data || []);

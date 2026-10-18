@@ -3,6 +3,7 @@ import { computed, reactive } from 'vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import DataTable from '@/Components/DataTable.vue';
+import FilterBar from '@/Components/FilterBar.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
@@ -11,6 +12,7 @@ import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 const props = defineProps({
     users: { type: Object, default: () => ({ data: [] }) },
     roles: { type: Array, default: () => [] },
+    filters: { type: Object, default: () => ({}) },
 });
 const page = usePage();
 const { t, te } = useT();
@@ -22,6 +24,10 @@ const meId = computed(() => page.props.auth?.user?.id);
 const roleList = computed(() => props.roles.map((r) => (typeof r === 'object' ? r : { id: r, code: r, name: null })));
 const roleIdOf = (code) => roleList.value.find((r) => r.code === code)?.id ?? code;
 const saving = reactive({});
+const filterFields = computed(() => [
+    { name: 'q', type: 'search', label: t('common.keyword'), placeholder: t('admin.users.search_placeholder') },
+    { name: 'role', type: 'select', label: t('admin.users.role'), options: roleList.value.map((r) => ({ value: r.code, label: r.name || te('roles', r.code) })) },
+]);
 const errors = computed(() => page.props.errors || {});
 
 const columns = computed(() => [
@@ -33,7 +39,7 @@ const columns = computed(() => [
 ]);
 
 function update(user, changes) {
-    const payload = { role_id: roleIdOf(user.role), is_active: !!user.is_active, ...changes };
+    const payload = { role_id: user.role_id ?? roleIdOf(user.role), is_active: !!user.is_active, ...changes };
     saving[user.id] = true;
     router.patch(lr(`/quan-tri/nguoi-dung/${user.id}`), payload, {
         preserveScroll: true,
@@ -47,6 +53,7 @@ function update(user, changes) {
     <PageHeader :eyebrow="t('admin.title')" :title="t('admin.users.title')" :description="t('admin.users.intro')" />
     <p v-if="errors.role_id || errors.is_active" class="mb-4 rounded-lg bg-danger-soft p-3 text-sm text-danger" role="alert">{{ errors.role_id || errors.is_active }}</p>
 
+    <FilterBar :filters="filters" :fields="filterFields" class="mb-4" />
     <DataTable :columns="columns" :rows="users?.data || []" :caption="t('admin.users.title')">
         <template #cell-name="{ row }">
             <span class="block font-semibold">{{ row.name }} <span v-if="row.id === meId" class="badge badge-info">{{ t('admin.users.you') }}</span></span>
@@ -59,7 +66,7 @@ function update(user, changes) {
                 class="input min-w-40"
                 :value="roleIdOf(row.role)"
                 :disabled="row.id === meId || saving[row.id]"
-                @change="update(row, { role_id: $event.target.value })"
+                @change="update(row, { role_id: Number($event.target.value) })"
             >
                 <option v-for="r in roleList" :key="r.id" :value="r.id">{{ te('roles', r.code) || r.name }}</option>
             </select>

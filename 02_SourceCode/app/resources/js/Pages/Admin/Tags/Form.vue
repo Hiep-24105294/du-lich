@@ -12,6 +12,7 @@ import { enumOptions, rowsOf } from '@/Utils/options';
 
 const props = defineProps({
     tag: { type: Object, default: null },
+    parents: { type: Array, default: () => [] },
     tags: { type: [Array, Object], default: () => [] },
     enums: { type: Object, default: () => ({}) },
 });
@@ -33,15 +34,16 @@ const form = useForm({
 });
 
 const groupOptions = computed(() => enumOptions(props.enums.groups || TAG_GROUPS, te, 'tag_group'));
-// Thẻ cha: cùng nhóm, khác chính nó
+// Thẻ cha: backend trả `parents` [{id, slug, name}]; nếu có nhóm thì chỉ lấy cùng nhóm, khác chính nó
 const parentOptions = computed(() =>
-    rowsOf(props.tags)
-        .filter((x) => x.id !== g.id && (x.group || x.tag_group) === form.tag_group)
+    (props.parents.length ? props.parents : rowsOf(props.tags))
+        .filter((x) => x.id !== g.id)
+        .filter((x) => !(x.group || x.tag_group) || (x.group || x.tag_group) === form.tag_group)
         .map((x) => ({ value: x.id, label: x.name_vi || x.name })),
 );
 
 function submit() {
-    if (isEdit.value) form.put(lr(`/quan-tri/the/${g.id}`), { preserveScroll: true });
+    if (isEdit.value) form.put(lr(`/quan-tri/the/${g.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/the'), { preserveScroll: true });
 }
 

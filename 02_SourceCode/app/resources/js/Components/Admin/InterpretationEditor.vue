@@ -20,7 +20,8 @@ const current = computed(() => props.items[index.value]);
 const err = (field) => props.errors[`interpretations.${index.value}.${field}`];
 const tabFilled = (loc, d) => isFilled(props.items[interpretationIndex(loc, d)]);
 const tabError = (loc, d) => hasErrorWithPrefix(props.errors, `interpretations.${interpretationIndex(loc, d)}.`);
-const missingRequired = computed(() => LOCALES.filter((loc) => !tabFilled(loc, 1)));
+// Backend chỉ bắt buộc bản tiếng Việt độ sâu 1 khi công bố
+const missingRequired = computed(() => (tabFilled('vi', 1) ? [] : ['vi']));
 </script>
 
 <template>
@@ -61,7 +62,7 @@ const missingRequired = computed(() => LOCALES.filter((loc) => !tabFilled(loc, 1
         </div>
 
         <div v-if="current" :key="index" class="grid gap-4">
-            <FormField v-model="current.title" :label="t('admin.form.interp_title')" :error="err('title')" :required="depth === 1" />
+            <FormField v-model="current.title" :label="t('admin.form.interp_title')" :error="err('title')" :required="depth === 1 && locale === 'vi'" />
             <FormField v-model="current.summary" type="textarea" :rows="2" :label="t('admin.form.interp_summary')" :error="err('summary')" />
             <FormField
                 v-model="current.body"
@@ -70,7 +71,7 @@ const missingRequired = computed(() => LOCALES.filter((loc) => !tabFilled(loc, 1
                 :label="t('admin.form.interp_body')"
                 :hint="t('admin.form.interp_body_hint')"
                 :error="err('body')"
-                :required="depth === 1"
+                :required="depth === 1 && locale === 'vi'"
             />
             <FormField
                 v-model="current.sources"

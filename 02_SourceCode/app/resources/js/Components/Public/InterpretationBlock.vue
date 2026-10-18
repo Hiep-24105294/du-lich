@@ -9,7 +9,7 @@ defineProps({
     depth: { type: Number, default: 1 },
     availableDepths: { type: Array, default: () => [1] },
 });
-const { t } = useT();
+const { t, locale } = useT();
 const { date } = useFormat();
 </script>
 
@@ -17,6 +17,13 @@ const { date } = useFormat();
     <section :aria-label="t('sites.interpretation')">
         <DepthTabs :current="depth" :available="availableDepths" class="mb-6" />
         <template v-if="interpretation">
+            <!-- Bản dự phòng: backend trả locale khác locale trang khi chưa có bản dịch -->
+            <p v-if="interpretation.locale && interpretation.locale !== locale" class="mb-4 rounded-lg bg-info-soft px-3 py-2 text-sm text-info" role="note">
+                {{ t('common.fallback_locale_notice', { lang: t(`enums.locale.${interpretation.locale}`) }) }}
+            </p>
+            <p v-if="interpretation.is_machine_translated" class="mb-4 rounded-lg bg-warning-soft px-3 py-2 text-sm text-warning" role="note">
+                {{ t('common.machine_translated_notice') }}
+            </p>
             <h2 v-if="interpretation.title" class="mb-3 text-2xl font-bold">{{ interpretation.title }}</h2>
             <p v-if="interpretation.summary" class="mb-5 text-lg text-muted">{{ interpretation.summary }}</p>
             <div class="prose-heritage" v-html="interpretation.body_html"></div>

@@ -52,7 +52,7 @@ const paymentColumns = computed(() => [
                 <p class="eyebrow">{{ t('booking.code') }}</p>
                 <h1 class="font-display text-3xl font-bold tracking-wide">{{ booking.code }}</h1>
             </div>
-            <StatusBadge :status="booking.status" />
+            <StatusBadge :status="booking.status" :label="booking.status_label" />
         </div>
 
         <div v-if="isHolding" class="mt-4 flex flex-wrap items-center gap-3">
@@ -103,6 +103,7 @@ const paymentColumns = computed(() => [
             </div>
             <p v-if="booking.can_pay && sandboxGateway" class="mt-3 text-xs text-muted">{{ t('payment.sandbox_note') }}</p>
             <p v-if="booking.status === 'paid'" class="mt-3 rounded-lg bg-success-soft p-3 text-sm text-success">{{ t('booking.paid_message') }}</p>
+            <p v-if="booking.cancel_reason" class="mt-3 text-sm text-muted">{{ t('booking.cancel_reason') }}: {{ booking.cancel_reason }}</p>
         </section>
 
         <section class="mt-6">

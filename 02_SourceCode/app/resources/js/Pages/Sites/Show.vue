@@ -108,8 +108,8 @@ const directions = computed(() =>
 
                 <section v-if="site.figures?.length">
                     <h2 class="section-title mb-4">{{ t('sites.related_figures') }}</h2>
-                    <ul class="grid gap-3 sm:grid-cols-2">
-                        <li v-for="f in site.figures" :key="f.slug">
+                    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <li v-for="f in site.figures" :key="f.slug" class="min-w-0">
                             <Link :href="f.url" class="card card-hover flex items-center gap-3 p-3">
                                 <CoverImage :src="f.portrait" :alt="f.title" icon="user" ratio="aspect-square" class="w-14 shrink-0 rounded-full" />
                                 <span class="min-w-0">

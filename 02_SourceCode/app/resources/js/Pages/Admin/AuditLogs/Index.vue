@@ -8,16 +8,19 @@ import Pagination from '@/Components/Pagination.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
 
-defineProps({
+const props = defineProps({
     logs: { type: Object, default: () => ({ data: [] }) },
     filters: { type: Object, default: () => ({}) },
+    actions: { type: Array, default: () => [] },
 });
 const { t, te } = useT();
 const { dateTime } = useFormat();
 
 const META_PREVIEW = 120;
 const fields = computed(() => [
-    { name: 'action', type: 'search', label: t('admin.audit.action'), placeholder: t('admin.audit.action_placeholder') },
+    props.actions.length
+        ? { name: 'action', type: 'select', label: t('admin.audit.action'), options: props.actions.map((a) => ({ value: a, label: a })) }
+        : { name: 'action', type: 'search', label: t('admin.audit.action'), placeholder: t('admin.audit.action_placeholder') },
     { name: 'user', type: 'search', label: t('admin.audit.user'), placeholder: t('admin.audit.user_placeholder') },
     { name: 'from', type: 'date', label: t('common.from') },
     { name: 'to', type: 'date', label: t('common.to') },

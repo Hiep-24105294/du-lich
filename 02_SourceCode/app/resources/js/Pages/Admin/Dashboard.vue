@@ -66,7 +66,7 @@ const subjectText = (s) => (s && typeof s === 'object' ? [te('subject_type', s.t
 
     <div class="mt-6 grid gap-4 lg:grid-cols-2">
         <ChartCard :title="t('admin.dashboard.chart_views')" type="line" :labels="views.map((x) => date(x.date, { day: '2-digit', month: '2-digit' }))" :values="views.map((x) => x.views)" :series-label="t('common.views')" />
-        <ChartCard :title="t('admin.dashboard.chart_bookings')" type="doughnut" :labels="byStatus.map((x) => te('status', x.status))" :values="byStatus.map((x) => x.count)" />
+        <ChartCard :title="t('admin.dashboard.chart_bookings')" type="doughnut" :labels="byStatus.map((x) => x.label || te('status', x.status))" :values="byStatus.map((x) => x.count)" />
         <ChartCard :title="t('admin.dashboard.chart_provinces')" type="hbar" :labels="byProvince.map((x) => x.name)" :values="byProvince.map((x) => x.count)" :height="320" />
         <ChartCard :title="t('admin.dashboard.chart_engines')" type="doughnut" :labels="engines.map((x) => te('engine', x.engine))" :values="engines.map((x) => x.count)" :height="320" />
     </div>

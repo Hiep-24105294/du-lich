@@ -47,7 +47,7 @@ function review(status) {
         <div class="space-y-6">
             <article class="card p-5">
                 <dl class="mb-4 grid gap-2 text-sm sm:grid-cols-2">
-                    <div><dt class="text-muted">{{ t('admin.contributions.author') }}</dt><dd class="font-medium">{{ c.user?.name || '—' }}</dd></div>
+                    <div><dt class="text-muted">{{ t('admin.contributions.author') }}</dt><dd class="font-medium">{{ c.user?.name || '—' }}<span v-if="c.user_email" class="block break-all text-xs font-normal text-muted">{{ c.user_email }}</span></dd></div>
                     <div><dt class="text-muted">{{ t('common.created_at') }}</dt><dd class="font-medium">{{ dateTime(c.created_at) }}</dd></div>
                     <div><dt class="text-muted">{{ t('admin.contributions.locale') }}</dt><dd class="font-medium">{{ te('locale', c.locale) }}</dd></div>
                     <div>

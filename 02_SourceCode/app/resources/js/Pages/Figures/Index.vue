@@ -22,7 +22,7 @@ const fields = computed(() => [
     { name: 'period', type: 'select', label: t('common.period'), options: props.periods.map((p) => ({ value: p.code, label: p.name })) },
 ]);
 const list = computed(() => props.figures?.data || []);
-const total = computed(() => props.figures?.total ?? props.figures?.meta?.total ?? list.value.length);
+const total = computed(() => props.figures?.total ?? list.value.length);
 </script>
 
 <template>

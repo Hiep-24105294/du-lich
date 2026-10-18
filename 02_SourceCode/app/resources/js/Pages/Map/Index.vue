@@ -7,11 +7,14 @@ import MapView from '@/Components/MapView.vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
+import { enumOptions } from '@/Utils/options';
 
 const props = defineProps({
     geojson: { type: Object, default: () => ({ type: 'FeatureCollection', features: [] }) },
     provinces: { type: Array, default: () => [] },
     filters: { type: Object, default: () => ({}) },
+    types: { type: Array, default: () => [] },
+    levels: { type: Array, default: () => [] },
 });
 const { t, te } = useT();
 const { number } = useFormat();
@@ -21,8 +24,8 @@ const SITE_TYPES = ['di_tich', 'danh_thang', 'di_san_phi_vat_the', 'bao_tang', '
 const LEVELS = ['unesco', 'quoc_gia_dac_biet', 'quoc_gia', 'cap_tinh', 'chua_xep_hang'];
 
 const fields = computed(() => [
-    { name: 'type', type: 'select', label: t('sites.type'), options: SITE_TYPES.map((c) => ({ value: c, label: te('site_type', c) })) },
-    { name: 'level', type: 'select', label: t('sites.level'), options: LEVELS.map((c) => ({ value: c, label: te('recognition_level', c) })) },
+    { name: 'type', type: 'select', label: t('sites.type'), options: enumOptions(props.types.length ? props.types : SITE_TYPES, te, 'site_type') },
+    { name: 'level', type: 'select', label: t('sites.level'), options: enumOptions(props.levels.length ? props.levels : LEVELS, te, 'recognition_level') },
     { name: 'province', type: 'select', label: t('common.province'), options: props.provinces.map((p) => ({ value: p.code, label: p.name })) },
 ]);
 

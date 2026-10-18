@@ -9,5 +9,7 @@ export function usePermissions() {
     const isAdmin = computed(() => role.value === 'admin');
     const isStaff = computed(() => ['admin', 'manager'].includes(role.value));
     const canAccessAdmin = computed(() => ['admin', 'manager', 'contributor'].includes(role.value));
-    return { user, role, isAdmin, isStaff, canAccessAdmin };
+    // Contributor không vào được trang tổng quan (/quan-tri) nên trỏ thẳng tới tuyến tham quan
+    const adminHome = computed(() => (isStaff.value ? '/quan-tri' : '/quan-tri/tuyen-tham-quan'));
+    return { user, role, isAdmin, isStaff, canAccessAdmin, adminHome };
 }

@@ -11,27 +11,33 @@ import FormField from '@/Components/FormField.vue';
 import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import { enumOptions } from '@/Utils/options';
 
 const props = defineProps({
     bookings: { type: Object, default: () => ({ data: [] }) },
     filters: { type: Object, default: () => ({}) },
     routes: { type: Array, default: () => [] },
+    statuses: { type: Array, default: () => [] },
+    transitions: { type: Object, default: null },
+    canChangeStatus: { type: Boolean, default: false },
 });
 const { t, te } = useT();
 const { money, dateTime } = useFormat();
 const lr = useLocaleRoute();
 
-// Máy trạng thái phía giao diện (chỉ để gợi ý; máy chủ kiểm tra Booking::TRANSITIONS)
-const TRANSITIONS = {
-    held: ['pending_payment', 'cancelled', 'expired'],
-    pending_payment: ['paid', 'held', 'cancelled', 'expired'],
+// Máy trạng thái lấy từ Booking::TRANSITIONS của máy chủ; mặc định chỉ dùng khi thiếu prop
+const DEFAULT_TRANSITIONS = {
+    held: ['pending_payment', 'paid', 'cancelled', 'expired'],
+    pending_payment: ['paid', 'cancelled', 'expired', 'held'],
     paid: ['refunded', 'cancelled'],
 };
 const STATUSES = ['held', 'pending_payment', 'paid', 'cancelled', 'expired', 'refunded'];
+const TRANSITIONS = computed(() => props.transitions || DEFAULT_TRANSITIONS);
+const nextStatuses = (row) => (props.canChangeStatus ? TRANSITIONS.value[row.status] || [] : []);
 
 const fields = computed(() => [
     { name: 'q', type: 'search', label: t('common.keyword'), placeholder: t('admin.bookings.search_placeholder') },
-    { name: 'status', type: 'select', label: t('common.status'), options: STATUSES.map((s) => ({ value: s, label: te('status', s) })) },
+    { name: 'status', type: 'select', label: t('common.status'), options: props.statuses.length ? enumOptions(props.statuses, te, 'status') : STATUSES.map((s) => ({ value: s, label: te('status', s) })) },
     { name: 'route', type: 'select', label: t('nav.tours'), options: props.routes.map((r) => ({ value: r.slug ?? r.id, label: r.name ?? r.title })) },
     { name: 'from', type: 'date', label: t('common.from') },
     { name: 'to', type: 'date', label: t('common.to') },
@@ -59,7 +65,7 @@ function ask(booking, status) {
 }
 
 function apply() {
-    form.patch(lr(`/quan-tri/dat-lich/${target.value.id}/trang-thai`), {
+    form.patch(lr(`/quan-tri/dat-lich/${target.value.code}/trang-thai`), {
         preserveScroll: true,
         onSuccess: () => (open.value = false),
     });
@@ -87,11 +93,11 @@ function apply() {
                 <span class="block text-xs text-muted">{{ dateTime(row.slot?.starts_at) }}</span>
             </template>
             <template #cell-total_vnd="{ value }"><span class="whitespace-nowrap">{{ money(value) }}</span></template>
-            <template #cell-status="{ value }"><StatusBadge :status="value" /></template>
+            <template #cell-status="{ row }"><StatusBadge :status="row.status" :label="row.status_label" /></template>
             <template #actions="{ row }">
                 <div class="flex flex-wrap justify-end gap-1">
                     <button
-                        v-for="next in TRANSITIONS[row.status] || []"
+                        v-for="next in nextStatuses(row)"
                         :key="next"
                         type="button"
                         class="btn btn-sm"
@@ -100,7 +106,7 @@ function apply() {
                     >
                         → {{ te('status', next) }}
                     </button>
-                    <span v-if="!(TRANSITIONS[row.status] || []).length" class="text-xs text-muted">{{ t('admin.bookings.final_state') }}</span>
+                    <span v-if="canChangeStatus && !nextStatuses(row).length" class="text-xs text-muted">{{ t('admin.bookings.final_state') }}</span>
                 </div>
             </template>
         </DataTable>

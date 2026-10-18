@@ -10,8 +10,9 @@ const props = defineProps({
 });
 const { t } = useT();
 
-const items = computed(() => props.links || props.paginator?.links || props.paginator?.meta?.links || []);
-const meta = computed(() => props.paginator?.meta || props.paginator || {});
+// Prop phân trang dạng phẳng (paginator->toArray()): không có khóa meta
+const items = computed(() => props.links || props.paginator?.links || []);
+const meta = computed(() => props.paginator || {});
 
 // Laravel trả nhãn "&laquo; Previous" / "Next &raquo;": thay bằng chuỗi dịch
 function label(link, i) {

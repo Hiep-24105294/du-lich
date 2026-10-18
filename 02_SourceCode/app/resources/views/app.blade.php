@@ -7,7 +7,7 @@
     <meta name="color-scheme" content="light dark">
     <link rel="icon" href="/favicon.ico">
     {{-- Đặt theme trước khi render để tránh nháy màu --}}
-    <script>
+    <script nonce="{{ Vite::cspNonce() }}">
         (function () {
             try {
                 var t = localStorage.getItem('disanso-theme');

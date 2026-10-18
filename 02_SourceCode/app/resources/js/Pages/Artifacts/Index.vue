@@ -27,7 +27,7 @@ const fields = computed(() => [
     { name: 'treasure', type: 'checkbox', label: t('artifacts.only_treasures') },
 ]);
 const list = computed(() => props.artifacts?.data || []);
-const total = computed(() => props.artifacts?.total ?? props.artifacts?.meta?.total ?? list.value.length);
+const total = computed(() => props.artifacts?.total ?? list.value.length);
 </script>
 
 <template>

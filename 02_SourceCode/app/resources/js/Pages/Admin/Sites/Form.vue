@@ -77,7 +77,7 @@ const sections = computed(() => [
 function submit() {
     form.transform((data) => ({ ...data, interpretations: serializeInterpretations(data.interpretations) }));
     const opts = { preserveScroll: true };
-    if (isEdit.value) form.put(lr(`/quan-tri/di-san/${s.id}`), opts);
+    if (isEdit.value) form.put(lr(`/quan-tri/di-san/${s.slug}`), opts);
     else form.post(lr('/quan-tri/di-san'), opts);
 }
 
