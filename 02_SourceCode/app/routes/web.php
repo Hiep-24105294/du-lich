@@ -106,7 +106,7 @@ Route::prefix('{locale}')->where(['locale' => 'vi|en'])->middleware('locale')->g
                 Route::delete("$path/{{$param}}", [$controller, 'destroy'])->name("$name.destroy");
             }
 
-            Route::patch('dat-lich/{booking:code}/trang-thai', [Admin\BookingController::class, 'status'])->name('bookings.status');
+            Route::patch('dat-lich/{booking}/trang-thai', [Admin\BookingController::class, 'status'])->name('bookings.status');
 
             Route::get('kiem-duyet', [Admin\ContributionController::class, 'index'])->name('contributions.index');
             Route::get('kiem-duyet/{contribution}', [Admin\ContributionController::class, 'show'])->whereNumber('contribution')->name('contributions.show');

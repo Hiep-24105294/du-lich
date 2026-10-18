@@ -15,11 +15,12 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:2', 'max:120'],
-            'phone' => ['nullable', 'string', 'regex:/^\+?[0-9]{9,15}$/'],
-            'locale' => ['required', Rule::in(['vi', 'en'])],
-            'theme' => ['required', Rule::in(['light', 'dark'])],
-            'organization' => ['nullable', 'string', 'max:190'],
+            // "sometimes": cho phép cập nhật từng phần (vd nút đổi theme chỉ gửi theme)
+            'name' => ['sometimes', 'required', 'string', 'min:2', 'max:120'],
+            'phone' => ['sometimes', 'nullable', 'string', 'regex:/^\+?[0-9]{9,15}$/'],
+            'locale' => ['sometimes', 'required', Rule::in(['vi', 'en'])],
+            'theme' => ['sometimes', 'required', Rule::in(['light', 'dark'])],
+            'organization' => ['sometimes', 'nullable', 'string', 'max:190'],
         ];
     }
 

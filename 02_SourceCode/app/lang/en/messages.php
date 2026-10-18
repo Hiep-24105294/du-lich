@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'app' => [
+        'notice' => 'Academic product – for educational purposes only',
+    ],
     'auth' => [
         'logged_in' => 'Signed in successfully. Welcome, :name!',
         'logged_out' => 'You have been signed out.',

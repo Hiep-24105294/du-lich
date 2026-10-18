@@ -41,7 +41,7 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com{$dev}",
             "font-src 'self' data: https://fonts.gstatic.com",
             "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://unpkg.com https:",
-            "media-src 'self' data: blob:",
+            "media-src 'self' data: blob: https:",
             "connect-src 'self' https://unpkg.com https://modelviewer.dev https://*.githubusercontent.com https://www.gstatic.com{$dev}",
             "worker-src 'self' blob:",
             "object-src 'none'",

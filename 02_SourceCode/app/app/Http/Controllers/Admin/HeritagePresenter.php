@@ -36,20 +36,33 @@ final class HeritagePresenter
             $data[$column] = $m->{$column};
         }
 
+        $titleVi = $m->interpretations->where('locale', 'vi')->sortBy('depth_level')->first()?->title;
+
         return $data + [
-            'interpretations' => $m->interpretations->sortBy(['locale', 'depth_level'])->map(fn ($i) => [
+            'title_vi' => $titleVi ?? $m->slug,
+            'interpretations' => $m->interpretations->sortBy([fn ($a, $b) => [$a->locale !== 'vi', $a->depth_level] <=> [$b->locale !== 'vi', $b->depth_level]])->map(fn ($i) => [
                 'id' => $i->id,
                 'locale' => $i->locale,
                 'depth_level' => $i->depth_level,
                 'title' => $i->title,
                 'summary' => $i->summary,
                 'body' => $i->body,
-                'sources' => $i->sources,
+                'sources' => self::sourceList($i->sources),
                 'version' => $i->version,
             ])->values()->all(),
             'media' => MediaItemResource::list($m->media),
             'tag_ids' => $m->tags->pluck('id')->all(),
         ];
+    }
+
+    /** Cột sources lưu nhiều dòng; form nhận mảng chuỗi. */
+    public static function sourceList(mixed $sources): array
+    {
+        if (is_array($sources)) {
+            return array_values(array_filter(array_map('trim', $sources), 'strlen'));
+        }
+
+        return array_values(array_filter(array_map('trim', explode("\n", (string) $sources)), 'strlen'));
     }
 
     public static function events($events): array

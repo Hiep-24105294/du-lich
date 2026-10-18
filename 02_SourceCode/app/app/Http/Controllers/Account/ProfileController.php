@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,12 +42,31 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $user->fill($request->validated())->save();
-        $this->audit->log('account.profile_updated', $user, ['fields' => array_keys($request->validated())], $user);
+        $data = $request->validated();
+        $previousLocale = $user->locale;
+        $user->fill($data)->save();
+        $this->audit->log('account.profile_updated', $user, ['fields' => array_keys($data)], $user);
+
+        // Chỉ đổi theme (nút trên thanh đầu trang): quay lại trang cũ, không flash
+        if ($this->isThemeOnly($data, $user)) {
+            return back();
+        }
 
         // Đổi ngôn ngữ thì chuyển hướng sang URL theo ngôn ngữ mới
-        return redirect(localized_route('account.profile', ['locale' => $user->locale]))
-            ->with('success', __('messages.profile.updated', [], $user->locale));
+        if (isset($data['locale']) && $data['locale'] !== $previousLocale) {
+            return redirect(localized_route('account.profile', ['locale' => $user->locale]))
+                ->with('success', __('messages.profile.updated', [], $user->locale));
+        }
+
+        return back()->with('success', __('messages.profile.updated'));
+    }
+
+    /** Body chỉ chứa giá trị cũ ngoài theme (useTheme gửi kèm name/phone/locale hiện tại). */
+    private function isThemeOnly(array $data, User $user): bool
+    {
+        $others = array_values(array_diff(array_keys($data), ['theme']));
+
+        return isset($data['theme']) && ($others === [] || ! $user->wasChanged($others));
     }
 
     public function password(PasswordUpdateRequest $request): RedirectResponse

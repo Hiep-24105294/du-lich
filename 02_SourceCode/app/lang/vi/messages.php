@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'app' => [
+        'notice' => 'Sản phẩm học thuật – phục vụ mục đích đào tạo',
+    ],
     'auth' => [
         'logged_in' => 'Đăng nhập thành công. Chào mừng :name!',
         'logged_out' => 'Bạn đã đăng xuất.',

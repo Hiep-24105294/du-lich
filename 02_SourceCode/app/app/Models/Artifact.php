@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesByIdOrKey;
 use App\Models\Concerns\HasInterpretations;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasTags;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Artifact extends Model
 {
-    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags;
+    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags, ResolvesByIdOrKey;
 
     public const TYPES = ['tuong', 'bia_ky', 'do_gom', 'do_dong', 'vu_khi', 'trang_phuc', 'kien_truc', 'tai_lieu', 'bao_vat', 'khac'];
 

@@ -21,7 +21,10 @@ trait FormatsHeritage
             'url' => $cover->url,
             'caption' => $cover->caption()?->caption,
             'license' => $cover->license,
+            'license_label' => __('enums.licenses.'.$cover->license),
             'source_name' => $cover->source_name,
+            'source_url' => $cover->source_url,
+            'author' => $cover->author,
         ];
     }
 

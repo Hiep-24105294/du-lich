@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesByIdOrKey;
 use App\Models\Concerns\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Tag extends Model
 {
-    use Translatable;
+    use Translatable, ResolvesByIdOrKey;
 
     public const GROUPS = ['chu_de', 'loai_hinh', 'ton_giao', 'phong_cach', 'vat_lieu', 'thoi_ky', 'vung_mien'];
 

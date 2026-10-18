@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesByIdOrKey;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\Translatable;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TourRoute extends Model
 {
-    use HasFactory, SoftDeletes, Translatable, HasMedia, HasTags;
+    use HasFactory, SoftDeletes, Translatable, HasMedia, HasTags, ResolvesByIdOrKey;
 
     protected string $translationModel = TourRouteTranslation::class;
     protected string $translationForeignKey = 'route_id';

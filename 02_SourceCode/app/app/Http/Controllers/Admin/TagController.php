@@ -22,7 +22,7 @@ class TagController extends Controller
     public function index(Request $request): Response
     {
         $filters = $this->filters($request, ['q', 'group']);
-        $tags = Tag::query()->with(['translations', 'parent'])
+        $tags = Tag::query()->with(['translations', 'parent.translations'])
             ->when($filters['group'], fn ($q, $v) => $q->where('tag_group', $v))
             ->when($filters['q'], fn ($q, $v) => $q->where('slug', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%'))
             ->orderBy('tag_group')->orderBy('slug')->get();
@@ -85,10 +85,13 @@ class TagController extends Controller
 
     private function form(?Tag $tag): Response
     {
+        $others = Tag::query()->with(['translations', 'parent.translations'])->whereKeyNot($tag?->id ?? 0)->orderBy('slug')->get();
+
         return Inertia::render('Admin/Tags/Form', [
             'tag' => $tag ? $this->row($tag) : null,
-            'parents' => Tag::query()->with('translations')->whereKeyNot($tag?->id ?? 0)->orderBy('slug')->get()
-                ->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'name' => $t->name])->all(),
+            'parents' => $others->map(fn ($t) => ['id' => $t->id, 'slug' => $t->slug, 'name' => $t->name])->all(),
+            // Frontend lọc thẻ cha cùng nhóm nên cần group/tag_group và name_vi của từng thẻ
+            'tags' => $others->map(fn (Tag $t) => $this->row($t))->all(),
             'enums' => ['groups' => HeritagePresenter::enumList('tag_groups', Tag::GROUPS)],
         ]);
     }
@@ -105,7 +108,7 @@ class TagController extends Controller
             'name_en' => $en?->name,
             'description_vi' => $vi?->description,
             'description_en' => $en?->description,
-            'parent' => $t->parent ? ['id' => $t->parent->id, 'slug' => $t->parent->slug] : null,
+            'parent' => $t->parent ? ['id' => $t->parent->id, 'slug' => $t->parent->slug, 'name' => $t->parent->name] : null,
         ];
     }
 }

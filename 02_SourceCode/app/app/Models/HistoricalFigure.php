@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesByIdOrKey;
 use App\Models\Concerns\HasInterpretations;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasTags;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HistoricalFigure extends Model
 {
-    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags;
+    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags, ResolvesByIdOrKey;
 
     public const TYPES = ['vua_chua', 'tuong_linh', 'nha_van_hoa', 'anh_hung', 'nhan_vat_ton_giao', 'nghe_nhan', 'khac'];
 

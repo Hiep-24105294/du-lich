@@ -36,6 +36,21 @@ trait ValidatesHeritageContent
         ];
     }
 
+    /**
+     * Form luôn gửi đủ 6 ô (vi/en × độ sâu 1–3): bỏ ô chưa soạn (title, summary, body rỗng)
+     * nhưng giữ nguyên chỉ số để khóa lỗi interpretations.{i}.title khớp đúng ô trên giao diện.
+     */
+    protected function prepareForValidation(): void
+    {
+        $items = $this->input('interpretations');
+        if (! is_array($items)) {
+            return;
+        }
+        $blank = fn ($v) => ! is_string($v) || trim($v) === '';
+        $this->merge(['interpretations' => array_filter($items, fn ($item) => ! is_array($item)
+            || ! ($blank($item['title'] ?? null) && $blank($item['summary'] ?? null) && $blank($item['body'] ?? null)))]);
+    }
+
     /** Ràng buộc: mỗi (locale, depth) chỉ một lần; bắt buộc depth 1 tiếng Việt khi công bố. */
     protected function validateInterpretationSet($validator): void
     {
@@ -46,7 +61,10 @@ trait ValidatesHeritageContent
                 $v->errors()->add('interpretations', __('validation.distinct', ['attribute' => __('validation.attributes.interpretations')]));
             }
             if ($this->input('status') === 'published' && ! $keys->contains('vi-1')) {
-                $v->errors()->add('interpretations', __('validation.required', ['attribute' => __('validation.attributes.interpretations').' (vi, 1)']));
+                $message = __('validation.required', ['attribute' => __('validation.attributes.interpretations').' (vi, 1)']);
+                $v->errors()->add('interpretations', $message);
+                // Ô vi-1 là phần tử 0 theo thứ tự cố định của form quản trị
+                $v->errors()->add('interpretations.0.title', $message);
             }
         });
     }

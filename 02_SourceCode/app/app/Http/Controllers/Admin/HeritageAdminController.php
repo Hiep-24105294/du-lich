@@ -60,12 +60,12 @@ abstract class HeritageAdminController extends Controller
         $items = $query->latest('updated_at')->paginate(20)->withQueryString()
             ->through(fn ($m) => HeritagePresenter::row($m) + $this->rowExtras($m));
 
-        return Inertia::render('Admin/'.$this->pageFolder().'/Index', [
+        // formOptions() gồm enums riêng (artifact_types, figure_types…) và danh sách chọn (sites) cho bộ lọc
+        return Inertia::render('Admin/'.$this->pageFolder().'/Index', array_merge($this->formOptions(), [
             $this->routeKey() => $items->toArray(),
             'filters' => $filters,
             'provinces' => $this->lookup->provinces(),
-            'enums' => HeritagePresenter::commonEnums(),
-        ]);
+        ]));
     }
 
     public function create(): Response

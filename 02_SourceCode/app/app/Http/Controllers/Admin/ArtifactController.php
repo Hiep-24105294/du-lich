@@ -35,7 +35,7 @@ class ArtifactController extends HeritageAdminController
 
     protected function rowExtras(Model $model): array
     {
-        return ['artifact_type' => $model->artifact_type, 'site' => $model->site?->title, 'is_national_treasure' => (bool) $model->is_national_treasure];
+        return ['artifact_type' => $model->artifact_type, 'site' => $model->site ? ['id' => $model->site->id, 'slug' => $model->site->slug, 'title' => $model->site->title] : null, 'is_national_treasure' => (bool) $model->is_national_treasure];
     }
 
     protected function formOptions(): array

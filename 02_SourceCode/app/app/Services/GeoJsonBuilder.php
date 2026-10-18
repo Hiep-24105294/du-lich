@@ -28,6 +28,7 @@ class GeoJsonBuilder
                 'title' => $site->title,
                 'summary' => $site->summary,
                 'site_type' => $site->site_type,
+                'site_type_label' => __('enums.site_types.'.$site->site_type),
                 'recognition_level' => $site->recognition_level,
                 'province' => $site->province?->localizedName(),
                 'province_code' => $site->province?->code,

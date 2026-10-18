@@ -83,7 +83,7 @@ class AnalyticsClient
 
             return is_array($json) ? $json : null;
         } catch (Throwable $e) {
-            Log::notice('Analytics service unavailable', ['path' => $path, 'error' => $e->getMessage()]);
+            Log::warning('Analytics service unavailable', ['path' => $path, 'error' => $e->getMessage()]);
 
             return null;
         }

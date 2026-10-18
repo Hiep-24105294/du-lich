@@ -95,4 +95,23 @@ class SearchFallbackTest extends TestCase
             ->assertJson(['engine' => 'fallback'])
             ->assertJsonPath('data.0.slug', 'hoang-thanh-thang-long');
     }
+
+    public function test_empty_semantic_results_use_fulltext_fallback(): void
+    {
+        // Chỉ mục Python vừa khởi động còn rỗng: trả 200 nhưng không có kết quả
+        Http::fake(['*/search' => Http::response(['engine' => 'tfidf', 'took_ms' => 1, 'results' => []])]);
+
+        $result = app(SearchService::class)->search('Thăng Long', 'vi');
+
+        $this->assertSame('fallback', $result['engine']);
+        $this->assertSame('hoang-thanh-thang-long', $result['results'][0]['slug']);
+        $this->assertDatabaseHas('search_logs', ['query' => 'Thăng Long', 'engine' => 'fallback']);
+    }
+
+    public function test_malformed_semantic_payload_uses_fallback(): void
+    {
+        Http::fake(['*/search' => Http::response(['unexpected' => true])]);
+
+        $this->getJson('/api/v1/search?q=Thăng Long&locale=vi')->assertOk()->assertJsonPath('engine', 'fallback');
+    }
 }

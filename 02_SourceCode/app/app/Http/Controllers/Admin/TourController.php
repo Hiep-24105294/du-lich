@@ -30,12 +30,16 @@ class TourController extends Controller
         $user = $request->user();
         $filters = $this->filters($request, ['q', 'status']);
 
-        $routes = TourRoute::query()->with(RouteCardResource::eager())->withCount(['stops', 'slots'])
+        $routes = TourRoute::query()->with([...RouteCardResource::eager(), 'owner:id,name'])->withCount(['stops', 'slots'])
             ->when(! $user->isStaff(), fn ($q) => $q->where('created_by', $user->id))
             ->when($filters['status'], fn ($q, $v) => $q->where('status', $v))
             ->when($filters['q'], fn ($q, $v) => $q->whereHas('translations', fn ($t) => $t->where('name', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%')))
             ->latest('updated_at')->paginate(20)->withQueryString()
-            ->through(fn ($r) => RouteCardResource::one($r) + ['slots_count' => (int) $r->slots_count, 'created_by' => $r->created_by]);
+            ->through(fn ($r) => RouteCardResource::one($r) + [
+                'slots_count' => (int) $r->slots_count,
+                'created_by' => $r->created_by,
+                'owner' => $r->owner ? ['name' => $r->owner->name] : null,
+            ]);
 
         return Inertia::render('Admin/Tours/Index', [
             'routes' => $routes->toArray(),

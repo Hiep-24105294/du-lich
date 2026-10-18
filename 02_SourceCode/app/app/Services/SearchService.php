@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -39,11 +40,15 @@ class SearchService
 
         $engine = 'semantic';
         $raw = $this->semantic($q, $locale, $limit, $types);
-        if ($raw === null) {
+        $results = $raw ? $this->hydrate($raw, $q) : [];
+        // Python tắt/lỗi (null) hoặc chỉ mục rỗng/không khớp bản công bố ([]) → FULLTEXT MySQL
+        if ($results === []) {
+            if ($raw !== null) {
+                Log::info('Semantic search returned no results, using fallback', ['q' => $q, 'locale' => $locale]);
+            }
             $engine = 'fallback';
-            $raw = $this->fallback($q, $locale, $limit, $types);
+            $results = $this->hydrate($this->fallback($q, $locale, $limit, $types), $q);
         }
-        $results = $this->hydrate($raw, $q);
         $duration = (int) round((microtime(true) - $started) * 1000);
 
         $this->log($q, $locale, $user, count($results), $engine, $duration);
@@ -66,6 +71,10 @@ class SearchService
     {
         $response = $this->analytics->search($q, $locale, $limit, $types);
         if ($response === null) {
+            return null;
+        }
+
+        if (! is_array($response['results'] ?? null)) {
             return null;
         }
 

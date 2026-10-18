@@ -11,6 +11,16 @@ class Booking extends Model
 {
     use HasFactory;
 
+    /** Route quản trị {booking}: chấp nhận id số hoặc mã BK-xxxx; route công khai dùng {booking:code}. */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === null && is_string($value) && ! ctype_digit($value)) {
+            return $this->newQuery()->where('code', $value)->first();
+        }
+
+        return parent::resolveRouteBinding($value, $field);
+    }
+
     public const HELD = 'held';
     public const PENDING_PAYMENT = 'pending_payment';
     public const PAID = 'paid';

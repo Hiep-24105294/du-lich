@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesByIdOrKey;
 use App\Models\Concerns\HasInterpretations;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasTags;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class HeritageSite extends Model
 {
-    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags;
+    use HasFactory, SoftDeletes, HasInterpretations, HasMedia, HasTags, ResolvesByIdOrKey;
 
     public const TYPES = ['di_tich', 'danh_thang', 'di_san_phi_vat_the', 'bao_tang', 'lang_nghe'];
     public const LEVELS = ['unesco', 'quoc_gia_dac_biet', 'quoc_gia', 'cap_tinh', 'chua_xep_hang'];

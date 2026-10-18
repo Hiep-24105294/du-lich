@@ -26,7 +26,7 @@ class BackupDatabase extends Command
         $cfg = config('database.connections.mysql');
 
         $process = new Process([
-            'mysqldump', '--single-transaction', '--routines', '--default-character-set=utf8mb4',
+            'mysqldump', '--single-transaction', '--routines', '--no-tablespaces', '--default-character-set=utf8mb4',
             '-h', $cfg['host'], '-P', (string) $cfg['port'], '-u', $cfg['username'], $cfg['database'],
         ], null, ['MYSQL_PWD' => $cfg['password']]);
         $process->setTimeout(600)->run();

@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\InertiaErrorPage;
 use App\Http\Controllers\HealthController;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -66,4 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return null;
         });
+
+        // Request Inertia → trang Vue Error (status); request thường → Blade errors/*
+        $exceptions->respond(fn ($response, Throwable $e, Request $request) => InertiaErrorPage::respond($response, $e, $request));
     })->create();

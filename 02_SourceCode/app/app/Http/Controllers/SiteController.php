@@ -20,6 +20,7 @@ class SiteController extends Controller
     public function index(Request $request, LookupService $lookup): Response
     {
         $filters = $this->filters($request, self::FILTERS);
+        $filters['sort'] = in_array($filters['sort'], HeritageQuery::SITE_SORTS, true) ? $filters['sort'] : null;
         $sites = HeritageQuery::sites($filters)->with(SiteCardResource::eager())->paginate(12)->withQueryString();
 
         return Inertia::render('Sites/Index', [
