@@ -94,7 +94,16 @@ async def lifespan(_: FastAPI):
             await task
 
 
-app = FastAPI(title="DiSanSo Analytics", version="1.0.0", lifespan=lifespan)
+# Tắt trang tài liệu tương tác khi chạy production (chỉ bật ở môi trường phát triển)
+_IS_PROD = os.getenv("APP_ENV", "production") == "production"
+app = FastAPI(
+    title="DiSanSo Analytics",
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url=None if _IS_PROD else "/docs",
+    redoc_url=None if _IS_PROD else "/redoc",
+    openapi_url=None if _IS_PROD else "/openapi.json",
+)
 
 
 def require_token(x_analytics_token: str | None = Header(default=None)) -> None:
