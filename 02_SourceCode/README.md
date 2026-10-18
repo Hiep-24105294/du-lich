@@ -1,122 +1,185 @@
 # DiSanSo – Nền tảng số hóa và diễn giải di sản văn hóa đa ngữ
 
-Sản phẩm học thuật – phục vụ mục đích đào tạo. Học phần Lập trình ứng dụng web trong du lịch 2 (CSE703073), đề tài ĐT-04, nhóm DiSanSo, Đại học Phenikaa.
+Sản phẩm học thuật, phục vụ mục đích đào tạo.
+- Học phần: Lập trình ứng dụng web trong du lịch 2 (CSE703073), Đại học Phenikaa.
+- Đề tài ĐT-04, nhóm DiSanSo, lớp 20xx-2-CSE703073-01.
+- Giảng viên: TS. Nguyễn Văn Tánh.
 
-## Mô tả
+## 1. Mô tả
 
-DiSanSo số hóa hồ sơ di sản, hiện vật và nhân vật lịch sử; tổ chức lớp diễn giải theo hai trục **ngôn ngữ** (vi, en) và **mức chuyên sâu** (1 phổ thông, 2 chuyên sâu, 3 học thuật); cung cấp thư viện ảnh có siêu dữ liệu nguồn gốc – giấy phép, thuyết minh âm thanh, bản đồ, dòng thời gian, tìm kiếm ngữ nghĩa theo thẻ, tuyến tham quan có đặt lịch giữ chỗ và thanh toán thử nghiệm, đóng góp cộng đồng có kiểm duyệt, khu quản trị và API mở (OpenAPI 3.1, JSON-LD schema.org, GeoJSON, iCalendar).
+DiSanSo tách **hồ sơ** (di sản, hiện vật, nhân vật lịch sử) khỏi **lớp diễn giải**. Lớp diễn giải tổ chức theo hai trục:
+- **ngôn ngữ:** `vi`, `en`;
+- **mức chuyên sâu:** 1 phổ thông, 2 chuyên sâu, 3 học thuật.
 
-Dữ liệu mẫu: 56 di sản, 62 hiện vật, 43 nhân vật, 453 bản diễn giải, 652 media, 365 sự kiện, 8 tuyến, 80 khung giờ (1.711 bản ghi du lịch).
+Các chức năng chính:
+- thư viện media có siêu dữ liệu nguồn gốc và giấy phép;
+- thuyết minh âm thanh (tệp MP3 hoặc TTS của trình duyệt);
+- bản đồ Leaflet, dòng thời gian tương tác;
+- tìm kiếm ngữ nghĩa theo thẻ bằng TF-IDF, có dự phòng FULLTEXT;
+- tuyến tham quan có đặt lịch giữ chỗ 10 phút và cổng thanh toán sandbox;
+- đóng góp cộng đồng có kiểm duyệt;
+- khu quản trị, kiểm định chất lượng dữ liệu;
+- API mở có OpenAPI 3.1, JSON-LD schema.org, GeoJSON, iCalendar.
 
-## Kiến trúc
+Dữ liệu hạt giống: 56 di sản, 62 hiện vật, 43 nhân vật, 453 bản diễn giải, 652 media, 365 sự kiện, 8 tuyến, 80 khung giờ, tổng 1.711 bản ghi du lịch.
+
+## 2. Kiến trúc
 
 ```
-Trình duyệt (Vue 3.5 + Inertia 2, 2 theme, Leaflet, Chart.js)
-        │  HTTP(S), cookie phiên + X-XSRF-TOKEN
-        ▼
-[app] Apache + PHP 8.3 + Laravel 12   ── HTTP nội bộ, X-Analytics-Token, timeout 2 s ──►  [analytics] FastAPI + scikit-learn
-   Middleware → Controllers/FormRequest → Services → Eloquent Models                       TF-IDF, gợi ý thẻ, kiểm định dữ liệu
-        │  PDO, truy vấn tham số hóa                                                              │ SQLAlchemy (chỉ đọc)
-        ▼                                                                                         ▼
-[db] MySQL 8.0 – 28 bảng nghiệp vụ + 8 bảng hạ tầng (utf8mb4, InnoDB, FULLTEXT, khóa dòng)
+┌──────────────────────────── Trình duyệt ────────────────────────────┐
+│ Vue 3.5 + Inertia 2 · Tailwind 4 (2 theme) · Leaflet · Chart.js      │
+│ model-viewer (CDN) · Web Speech API (TTS)                            │
+└───────────────┬──────────────────────────────────────────────────────┘
+                │ HTTP(S) · cookie phiên HttpOnly + header X-XSRF-TOKEN
+                ▼
+┌─────────────── app: Apache 2.4 + PHP 8.3 + Laravel 12 ───────────────┐
+│ Middleware (SetLocale, SecurityHeaders, role, throttle)               │
+│   → Controllers + FormRequest → Services → Eloquent Models            │
+│ Services: Booking, Payment + SandboxGateway, Search, ContentLocalizer,│
+│           JsonLd, GeoJson, Ical, AuditLogger, AnalyticsClient         │
+│ Lịch nền: app:expire-holds (mỗi phút), app:backup-db (02:00)          │
+└───────┬───────────────────────────────────────────────┬──────────────┘
+        │ PDO, truy vấn tham số hóa                     │ HTTP nội bộ, X-Analytics-Token,
+        ▼                                               ▼ timeout 2 s (lỗi → FULLTEXT)
+┌──────── db: MySQL 8.0 ────────┐        ┌──── analytics: FastAPI (Python 3.12) ────┐
+│ 36 bảng (28 nghiệp vụ),       │◄───────│ /search TF-IDF lai từ + ký tự            │
+│ utf8mb4, InnoDB, FULLTEXT,    │ chỉ đọc│ /suggest-tags · /quality-report (Q01–Q11) │
+│ khóa dòng khi giữ chỗ         │SQLAlch.│ /reindex · /stats/overview · /healthz     │
+└───────────────────────────────┘        └───────────────────────────────────────────┘
 ```
 
-Đơn khối mô-đun ba tầng (trình bày – nghiệp vụ – truy cập dữ liệu) kèm một dịch vụ Python tách rời; khi dịch vụ Python lỗi, tìm kiếm tự chuyển sang FULLTEXT MySQL.
+Kiểu kiến trúc: đơn khối mô-đun ba tầng (trình bày, nghiệp vụ, truy cập dữ liệu), kèm một dịch vụ phân tích Python tách rời. Hệ thống suy giảm có kiểm soát: khi Python không phản hồi, trang vẫn hoạt động và chỉ chuyển sang tìm kiếm cơ bản.
 
-## Cài đặt nhanh (Docker)
-
-Yêu cầu: Docker Desktop (Windows/macOS) hoặc Docker Engine + Compose v2; cổng 8080, 8001, 3307 trống.
-
-```bash
-cd 02_SourceCode
-cp .env.example .env          # Windows: copy .env.example .env
-docker compose up --build     # lần đầu 5–10 phút: build, migrate, seed
-```
-
-- Web: http://localhost:8080 (→ /vi) · Quản trị: http://localhost:8080/vi/quan-tri
-- Kiểm tra sống: http://localhost:8080/healthz · OpenAPI: http://localhost:8080/api/v1/openapi.json
-- Dịch vụ Python: http://localhost:8001/docs · MySQL: localhost:3307 (disanso / mật khẩu trong `.env`)
-
-Tài khoản mẫu (mật khẩu = `SEED_DEMO_PASSWORD`, mặc định `DiSan@2026`): `admin@disanso.test`, `manager@disanso.test`, `partner@disanso.test` (đối tác), `user@disanso.test` (thành viên).
-
-Dừng: `docker compose down` · Xóa sạch dữ liệu: `docker compose down -v`.
-
-## Cấu trúc thư mục
+## 3. Cấu trúc thư mục
 
 ```
 02_SourceCode/
-├── compose.yaml, .env.example
+├── compose.yaml                 # 3 dịch vụ: db, analytics, app
+├── .env.example                 # mẫu biến môi trường (giá trị mô phỏng)
 ├── app/                         # Laravel 12 + Inertia + Vue
 │   ├── app/Http/{Controllers,Middleware,Requests,Resources}
-│   ├── app/Services/            # Booking, Payment(+SandboxGateway), Search, ContentLocalizer, JsonLd, GeoJson, Ical, Audit…
-│   ├── app/Models/ (+Concerns)  # 28 model, trait HasInterpretations, HasMedia, HasTags, Translatable
-│   ├── app/Policies, app/Console/Commands (app:backup-db, app:expire-holds, app:is-seeded)
-│   ├── database/migrations/     # 11 migration
+│   ├── app/Services/            # nghiệp vụ (controller mỏng)
+│   ├── app/Models/ (+Concerns)  # model + trait HasInterpretations, HasMedia, HasTags, Translatable
+│   ├── app/Policies/            # phân quyền theo đối tượng
+│   ├── app/Console/Commands/    # app:backup-db, app:expire-holds, app:is-seeded
+│   ├── database/migrations/     # 11 tệp migration
 │   ├── database/seeders/, database/data/*.json   # dữ liệu nguồn song ngữ có trích dẫn
 │   ├── resources/js/{Pages,Components,Layouts,Composables}  # 42 trang, 50 component
-│   ├── resources/css/app.css    # token 2 theme
-│   ├── resources/openapi/openapi.json
-│   ├── lang/{vi,en}.json, lang/{vi,en}/*.php
+│   ├── resources/css/app.css    # token màu cho 2 theme
+│   ├── resources/openapi/openapi.json            # đặc tả OpenAPI 3.1
+│   ├── lang/{vi,en}.json        # chuỗi giao diện
 │   ├── routes/{web,api,console}.php
-│   ├── tests/Feature (PHPUnit), tests/e2e (Playwright)
+│   ├── tests/Feature/           # PHPUnit (15 tệp, 127 ca)
+│   ├── tests/e2e/               # Playwright
 │   └── docker/{Dockerfile,entrypoint.sh,php.ini}
 └── python-service/              # FastAPI
     ├── app/{main,db,text,vectorize,search,tags,quality,stats}.py
-    ├── kiem_dinh_du_lieu.py     # CLI kiểm định dữ liệu
-    └── tests/                   # pytest
+    ├── kiem_dinh_du_lieu.py     # CLI kiểm định chất lượng dữ liệu
+    ├── requirements.txt, requirements-dev.txt
+    └── tests/                   # pytest (56 ca)
 ```
 
-## Biến môi trường
+CSDL độc lập (`schema.sql`, `seed_sample.sql`, ERD, từ điển dữ liệu) nằm trong `../03_Database`.
 
-| Biến | Ý nghĩa | Mặc định |
+## 4. Biến môi trường
+
+Sao chép `.env.example` thành `.env`, đặt cùng thư mục với `compose.yaml`. Không đưa `.env` vào Git. Khi triển khai thật, phải đổi mọi giá trị bí mật.
+
+| Biến | Ý nghĩa | Giá trị trong `.env.example` |
 | --- | --- | --- |
-| APP_ENV / APP_DEBUG / APP_URL | Môi trường, gỡ lỗi, URL gốc | production / false / http://localhost:8080 |
-| APP_KEY | Khóa mã hóa (để trống: entrypoint tự sinh và lưu) | – |
-| DB_DATABASE / DB_USERNAME / DB_PASSWORD / DB_ROOT_PASSWORD | MySQL | disanso / disanso / (đặt trong .env) |
-| APP_FORWARD_PORT / ANALYTICS_FORWARD_PORT / DB_FORWARD_PORT | Cổng ánh xạ ra máy chủ | 8080 / 8001 / 3307 |
-| ANALYTICS_TOKEN | Token dùng chung app ↔ Python | (đặt trong .env) |
-| PAYMENT_SANDBOX_SECRET | Khóa HMAC của cổng sandbox | (đặt trong .env) |
-| SEED_DEMO_PASSWORD | Mật khẩu tài khoản mẫu | DiSan@2026 |
-| SESSION_SECURE_COOKIE | Cookie chỉ qua HTTPS | false (true khi go-live) |
-| BOOKING_HOLD_MINUTES | Thời gian giữ chỗ | 10 |
-| LOG_LEVEL | Mức nhật ký | info |
+| `APP_ENV`, `APP_DEBUG` | Môi trường, chế độ gỡ lỗi | `production`, `false` |
+| `APP_URL` | URL gốc | `http://localhost:8080` |
+| `APP_KEY` | Khóa mã hóa phiên/cookie; để trống thì entrypoint tự sinh và lưu vào volume | (trống) |
+| `LOG_LEVEL` | Mức nhật ký | `info` |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Tài khoản MySQL ứng dụng | `disanso`, `disanso`, `disanso_secret` |
+| `DB_ROOT_PASSWORD` | Mật khẩu root MySQL (dùng để tạo CSDL kiểm thử) | `root_secret` |
+| `APP_FORWARD_PORT`, `ANALYTICS_FORWARD_PORT`, `DB_FORWARD_PORT` | Cổng ánh xạ ra máy chủ | `8080`, `8001`, `3307` |
+| `ANALYTICS_TOKEN` | Token dùng chung giữa app và Python | `dev-analytics-token` |
+| `PAYMENT_SANDBOX_SECRET` | Khóa HMAC-SHA256 của cổng sandbox | `sandbox-secret-change-me` |
+| `SEED_DEMO_PASSWORD` | Mật khẩu tài khoản mẫu khi seed | `DiSan@2026` |
+| `SESSION_SECURE_COOKIE` | Chỉ gửi cookie qua HTTPS | `false` (đặt `true` khi go-live) |
 
-Không đưa `.env`, mật khẩu, khóa API vào kho; khi triển khai thật phải đổi mọi bí mật.
+`compose.yaml` cố định thêm các biến: `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PAYMENT_GATEWAY=sandbox`, `BOOKING_HOLD_MINUTES=10`, `TRUSTED_PROXIES=*`, `ANALYTICS_URL=http://analytics:8001`.
 
-## Kiểm thử
+## 5. Chạy hệ thống
 
 ```bash
-# PHPUnit (image runtime không có phpunit → mount mã nguồn có vendor dev; DB test disanso_test)
-docker run --rm -u $(id -u):$(id -g) --network 02_sourcecode_default \
-  -v "$PWD/app":/var/www/html -w /var/www/html -e HOME=/tmp --entrypoint php 02_sourcecode-app artisan test
-#   kết quả 18/10/2026: 126 passed, 1 skipped (pcntl)
-
-# pytest (từ python-service)
-docker run --rm -v "$PWD/python-service":/src -w /src --entrypoint sh 02_sourcecode-analytics \
-  -c "pip install -q -r requirements-dev.txt && python -m pytest -q"     # 56 passed
-
-# Playwright ba trình duyệt (hệ thống đang chạy ở 8080)
-cd app && npx playwright install chromium firefox webkit && npx playwright test
-
-# Kiểm định chất lượng dữ liệu
-docker compose exec analytics python kiem_dinh_du_lieu.py
+cd 02_SourceCode
+cp .env.example .env              # Windows PowerShell: copy .env.example .env
+docker compose up --build         # chạy nền: docker compose up -d --build
+docker compose logs -f app        # theo dõi entrypoint: chờ DB → migrate → seed → Apache
+docker compose ps
 ```
 
-Cài vendor dev cho PHPUnit lần đầu: `docker run --rm -u $(id -u):$(id -g) -v "$PWD/app":/app -w /app composer:2 install`.
+- Web: http://localhost:8080 (tự chuyển tới `/vi`). Quản trị: http://localhost:8080/vi/quan-tri.
+- Trạng thái sống: http://localhost:8080/healthz. OpenAPI: http://localhost:8080/api/v1/openapi.json.
+- Dịch vụ Python: http://localhost:8001/healthz. MySQL: `localhost:3307`.
+- Tài khoản mẫu (mật khẩu `DiSan@2026`): `admin@disanso.test`, `manager@disanso.test`, `partner@disanso.test` (đối tác), `user@disanso.test` (thành viên).
+- Dừng hệ thống: `docker compose down`. Xóa sạch dữ liệu: `docker compose down -v`.
+- Lệnh Artisan: `docker compose exec -u www-data app php artisan <lệnh>`. Ví dụ nạp lại dữ liệu: `migrate:fresh --seed --force`.
 
-## Vận hành
+## 6. Kiểm thử
 
-- Sao lưu: tự động lúc khởi động và 02:00 hằng ngày, giữ 7 bản trong volume `app_storage` (`storage/app/backups`); chạy tay: `docker compose exec -u www-data app php artisan app:backup-db`.
-- Nhật ký: `docker compose logs -f app` (Apache), `storage/logs/laravel.log` (ứng dụng), bảng `audit_logs` (nghiệp vụ, xem tại /vi/quan-tri/nhat-ky).
-- Chi tiết: `04_HuongDanSuDung/HuongDan_CaiDat_QuanTri.md`.
+Máy phát triển không cần cài PHP, mọi lệnh PHP chạy qua Docker. Các lệnh dưới đây chạy từ `02_SourceCode`, khi hệ thống đang chạy.
 
-## Thành viên
+```bash
+# Cài vendor dev cho PHPUnit (lần đầu)
+docker run --rm -u $(id -u):$(id -g) -v "$PWD/app":/app -w /app composer:2 install
+
+# PHPUnit: image runtime build --no-dev nên mount mã nguồn; dùng CSDL test disanso_test
+docker run --rm -u $(id -u):$(id -g) --network 02_sourcecode_default \
+  -v "$PWD/app":/var/www/html -w /var/www/html -e HOME=/tmp \
+  --entrypoint php 02_sourcecode-app artisan test
+#   Kết quả 18/10/2026: 126 passed, 1 skipped (thiếu pcntl)
+
+# pytest (chạy từ thư mục python-service)
+cd python-service
+docker run --rm -v "$PWD":/src -w /src --entrypoint sh 02_sourcecode-analytics \
+  -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
+#   Kết quả 18/10/2026: 56 passed
+cd ..
+
+# Playwright ba trình duyệt (chạy từ app/; base URL lấy từ E2E_BASE_URL, mặc định http://localhost:8080)
+cd app
+npx playwright install chromium firefox webkit
+npx playwright test --project=chromium --project=firefox --project=webkit
+npx playwright show-report tests/e2e/report
+cd ..
+
+# Lighthouse mobile
+npx lighthouse http://localhost:8080/vi --form-factor=mobile --output=json \
+  --output-path=../05_KiemThu/lighthouse/home.json --chrome-flags="--headless"
+
+# Kiểm định chất lượng dữ liệu (mã thoát 0: không lỗi; 1: có lỗi; 2: không kết nối được CSDL)
+docker compose exec analytics python kiem_dinh_du_lieu.py
+
+# Rà soát phụ thuộc
+docker run --rm -u $(id -u):$(id -g) -v "$PWD/app":/app -w /app composer:2 audit
+(cd app && npm audit)
+```
+
+Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm trong `../05_KiemThu`. Danh mục ca kiểm thử nằm trong sheet CHECKLIST_KIEMTHU của `../07_QuanTriDuAn/CSE703073_QuanTriDuAn_KiemThu.xlsx`.
+
+## 7. Vận hành
+
+- **Sao lưu:** chạy tự động khi container khởi động và lúc 02:00 hằng ngày, giữ 7 bản trong volume `app_storage` (`storage/app/backups`). Chạy tay: `docker compose exec -u www-data app php artisan app:backup-db`.
+- **Nhật ký:**
+  - hạ tầng: `docker compose logs -f app`;
+  - ứng dụng: `storage/logs/laravel.log`, `backup.log`;
+  - nghiệp vụ: bảng `audit_logs`, xem tại `/vi/quan-tri/nhat-ky`.
+- Hướng dẫn chi tiết, kèm go-live lên Railway/Render: `../04_HuongDanSuDung/HuongDan_CaiDat_QuanTri.md`.
+
+## 8. Thành viên
 
 | Họ tên | MSSV | Vai trò |
 | --- | --- | --- |
-| <Họ tên 1> (Trưởng nhóm) | <MSSV1> | V1 Trưởng nhóm – quản trị cấu hình; V6 Nghiệp vụ và tài liệu |
+| <Họ tên 1> (Trưởng nhóm) | <MSSV1> | V1 Trưởng nhóm, quản trị cấu hình; V6 Nghiệp vụ và tài liệu |
 | <Họ tên 2> | <MSSV2> | V2 Kiến trúc sư dữ liệu |
 | <Họ tên 3> | <MSSV3> | V3 Phát triển máy chủ |
 | <Họ tên 4> | <MSSV4> | V4 Phát triển giao diện; V5 Kiểm thử và triển khai |
 
-Giảng viên hướng dẫn: TS. Nguyễn Văn Tánh. Giấy phép và thư viện bên thứ ba: xem `00_INFO.md` Mục 10.
+## 9. Giấy phép
+
+- **Mã nguồn do nhóm viết:** sản phẩm học thuật, chỉ phục vụ mục đích đào tạo trong học phần CSE703073 [CẬP NHẬT: ghi giấy phép mở nếu nhóm quyết định công bố, ví dụ MIT].
+- **Dữ liệu `database/data/*.json`:** biên soạn từ nguồn công khai, có ghi nguồn trong từng bản ghi. Ảnh và âm thanh hạt giống là tư liệu mô phỏng (giấy phép `simulated`).
+- **Thư viện bên thứ ba:** giữ giấy phép gốc (MIT, BSD, Apache-2.0, GPL-2.0 cho MySQL, OFL cho phông chữ, ODbL cho dữ liệu OpenStreetMap). Danh mục đầy đủ ở `../00_INFO.md`, Mục 10.

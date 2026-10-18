@@ -33,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(PaymentGateway::class, SandboxGateway::class);
+        // Bảng periods nhỏ, nạp một lần cho mỗi request/lệnh seed
+        $this->app->scoped(\App\Services\PeriodResolver::class);
     }
 
     public function boot(): void

@@ -1,13 +1,20 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
-import {
-    Chart, LineController, BarController, DoughnutController, LineElement, BarElement, ArcElement,
-    PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler,
-} from 'chart.js';
 import EmptyState from '@/Components/EmptyState.vue';
 import { useT } from '@/Composables/useT';
 
-Chart.register(LineController, BarController, DoughnutController, LineElement, BarElement, ArcElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler);
+// Chart.js nạp động (chunk vendor-chart), chỉ trang dashboard mới tải; dùng chung một Promise
+let chartModule = null;
+function loadChart() {
+    chartModule ??= import('chart.js').then((m) => {
+        m.Chart.register(
+            m.LineController, m.BarController, m.DoughnutController, m.LineElement, m.BarElement, m.ArcElement,
+            m.PointElement, m.CategoryScale, m.LinearScale, m.Tooltip, m.Legend, m.Filler,
+        );
+        return m.Chart;
+    });
+    return chartModule;
+}
 
 const props = defineProps({
     title: { type: String, required: true },
@@ -20,7 +27,9 @@ const props = defineProps({
 const { t } = useT();
 const canvas = ref(null);
 const chart = shallowRef(null);
+const loadFailed = ref(false);
 let observer = null;
+let Chart = null;
 
 // Màu đọc từ biến CSS để theo theme hiện tại
 function tokens() {
@@ -34,7 +43,7 @@ function tokens() {
 
 function build() {
     chart.value?.destroy();
-    if (!canvas.value || !props.values.length) return;
+    if (!Chart || !canvas.value || !props.values.length) return;
     const c = tokens();
     const isDoughnut = props.type === 'doughnut';
     const isHbar = props.type === 'hbar';
@@ -71,12 +80,18 @@ function build() {
     });
 }
 
-onMounted(() => {
+onMounted(async () => {
+    try {
+        Chart = await loadChart();
+    } catch {
+        loadFailed.value = true;
+        return;
+    }
     build();
     observer = new MutationObserver(build);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 });
-watch(() => [props.labels, props.values], build, { deep: true });
+watch(() => [props.labels, props.values], build, { deep: true, flush: 'post' });
 onBeforeUnmount(() => {
     observer?.disconnect();
     chart.value?.destroy();
@@ -87,6 +102,7 @@ onBeforeUnmount(() => {
     <section class="card p-4">
         <h2 class="mb-3 font-body text-base font-bold">{{ title }}</h2>
         <EmptyState v-if="!values.length" icon="activity" :title="t('common.no_data')" compact />
+        <p v-else-if="loadFailed" class="text-sm text-muted" role="alert">{{ t('common.chart_error') }}</p>
         <div v-else class="relative" :style="{ height: `${height}px` }">
             <canvas ref="canvas" role="img" :aria-label="title"></canvas>
         </div>

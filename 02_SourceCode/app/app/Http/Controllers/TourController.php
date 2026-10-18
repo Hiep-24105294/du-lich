@@ -35,12 +35,16 @@ class TourController extends Controller
         ]);
     }
 
-    /** Chỉ các tỉnh có tuyến đã công bố. */
+    /** Chỉ các tỉnh có tuyến đã công bố; count = số tuyến đã công bố (không phải số di sản). */
     private function routeProvinces(LookupService $lookup): array
     {
-        $ids = TourRoute::published()->whereNotNull('province_id')->distinct()->pluck('province_id')->all();
+        $routeCounts = TourRoute::published()->whereNotNull('province_id')
+            ->selectRaw('province_id, COUNT(*) as total')->groupBy('province_id')->pluck('total', 'province_id');
 
-        return collect($lookup->provinces())->whereIn('id', $ids)->values()->all();
+        return collect($lookup->provinces())
+            ->filter(fn (array $p) => isset($routeCounts[$p['id']]))
+            ->map(fn (array $p) => array_merge($p, ['count' => (int) $routeCounts[$p['id']]]))
+            ->values()->all();
     }
 
     public function show(Request $request, TourRoute $route, BookingService $bookings): Response

@@ -16,12 +16,28 @@ class BackupDatabase extends Command
     protected $signature = 'app:backup-db {--keep=7 : Số bản sao lưu giữ lại}';
     protected $description = 'Dump the MySQL database to storage/app/backups';
 
+    /** Tệp chứa băm mật khẩu + dữ liệu cá nhân: chỉ chủ sở hữu (www-data) đọc/ghi được. */
+    private const FILE_MODE = 0600;
+    private const DIR_MODE = 0700;
+
     public function handle(): int
+    {
+        // umask 0077 bất kể tiến trình cha (docker exec có umask 0000) → tệp/thư mục mới không cho group/other
+        $previousUmask = umask(0077);
+        try {
+            return $this->backup();
+        } finally {
+            umask($previousUmask);
+        }
+    }
+
+    private function backup(): int
     {
         $dir = storage_path('app/backups');
         if (! is_dir($dir)) {
-            mkdir($dir, 0775, true);
+            mkdir($dir, self::DIR_MODE, true);
         }
+        chmod($dir, self::DIR_MODE);
         $file = $dir.'/disanso_'.now()->format('Ymd_His').'.sql';
         $cfg = config('database.connections.mysql');
 
@@ -38,18 +54,27 @@ class BackupDatabase extends Command
             return self::FAILURE;
         }
         file_put_contents($file, $process->getOutput());
+        chmod($file, self::FILE_MODE);
 
-        // Xoay vòng: chỉ giữ N bản mới nhất
-        $files = glob($dir.'/disanso_*.sql');
+        $this->rotate($dir);
+
+        $size = round(filesize($file) / 1024, 1);
+        Log::info('Database backup completed', ['file' => basename($file), 'size_kb' => $size]);
+        $this->info(now()->toDateTimeString().' backup OK: '.basename($file)." ({$size} KB)");
+
+        return self::SUCCESS;
+    }
+
+    /** Chỉ giữ N bản mới nhất; siết quyền cả các bản cũ tạo trước bản vá (0666/0644). */
+    private function rotate(string $dir): void
+    {
+        $files = glob($dir.'/disanso_*.sql') ?: [];
         rsort($files);
         foreach (array_slice($files, (int) $this->option('keep')) as $old) {
             unlink($old);
         }
-
-        $size = round(filesize($file) / 1024, 1);
-        Log::info('Database backup completed', ['file' => basename($file), 'size_kb' => $size]);
-        $this->info(now()->toDateTimeString()." backup OK: ".basename($file)." ({$size} KB)");
-
-        return self::SUCCESS;
+        foreach (array_slice($files, 0, (int) $this->option('keep')) as $kept) {
+            @chmod($kept, self::FILE_MODE);
+        }
     }
 }

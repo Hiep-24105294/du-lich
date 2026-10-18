@@ -9,6 +9,7 @@ use App\Models\Interpretation;
 use App\Models\TimelineEvent;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\PeriodResolver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
@@ -120,13 +121,15 @@ class HeritageWriter
     private function syncEvents(Model $model, string $foreignKey, array $events): void
     {
         $keep = [];
+        $periods = app(PeriodResolver::class);
         foreach ($events as $e) {
             $event = ! empty($e['id'])
                 ? TimelineEvent::query()->where($foreignKey, $model->getKey())->find($e['id']) ?? new TimelineEvent()
                 : new TimelineEvent();
             $event->fill([
                 $foreignKey => $model->getKey(),
-                'period_id' => $model->period_id,
+                // Thời kỳ theo năm sự kiện, không chép nguyên thời kỳ của chủ thể
+                'period_id' => $periods->forYear(isset($e['event_year']) ? (int) $e['event_year'] : null, $model->period_id),
                 'event_type' => $e['event_type'],
                 'event_year' => $e['event_year'],
                 'event_month' => $e['event_month'] ?? null,

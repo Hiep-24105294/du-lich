@@ -70,17 +70,18 @@ trait ReadsSeedJson
         $subject->tags()->sync($ids);
     }
 
-    /** Tạo lại sự kiện dòng thời gian của một di sản/nhân vật. */
+    /** Tạo lại sự kiện dòng thời gian của một di sản/nhân vật; $periodId của chủ thể chỉ là gợi ý ưu tiên. */
     protected function syncEvents(string $column, Model $subject, array $events, ?int $periodId): void
     {
         \App\Models\TimelineEvent::where($column, $subject->getKey())->delete();
+        $periods = app(\App\Services\PeriodResolver::class);
         foreach ($events as $ev) {
             if (empty($ev['year']) && ($ev['year'] ?? null) !== 0) {
                 continue;
             }
             $event = \App\Models\TimelineEvent::create([
                 $column => $subject->getKey(),
-                'period_id' => $periodId,
+                'period_id' => $periods->forYear((int) $ev['year'], $periodId),
                 'event_type' => $ev['type'] ?? 'khac',
                 'event_year' => (int) $ev['year'],
                 'event_month' => $ev['month'] ?? null,

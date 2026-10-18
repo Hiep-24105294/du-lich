@@ -3,39 +3,26 @@ import { ref, onMounted } from 'vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 
-/** Xem mô hình 3D/AR bằng <model-viewer>; script CDN chỉ nạp khi có src. */
+/**
+ * Xem mô hình 3D/AR bằng <model-viewer>. Thư viện được tự host (gói npm, chunk vendor-model-viewer)
+ * thay cho CDN unpkg để loại rủi ro chuỗi cung ứng (OWASP A08) và chỉ nạp khi trang có mô hình.
+ */
 const props = defineProps({
     src: { type: String, required: true },
     alt: { type: String, default: '' },
     poster: { type: String, default: null },
 });
 const { t } = useT();
-const SCRIPT_URL = 'https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
 const status = ref('loading'); // loading | ready | error
 
-function loadScript() {
+function loadModelViewer() {
     if (window.customElements?.get('model-viewer')) return Promise.resolve();
-    const existing = document.querySelector(`script[src="${SCRIPT_URL}"]`);
-    if (existing) {
-        return new Promise((resolve, reject) => {
-            existing.addEventListener('load', resolve, { once: true });
-            existing.addEventListener('error', reject, { once: true });
-        });
-    }
-    return new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.type = 'module';
-        s.src = SCRIPT_URL;
-        s.crossOrigin = 'anonymous';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
+    return import('@google/model-viewer');
 }
 
 onMounted(() => {
     if (!props.src) return;
-    loadScript()
+    loadModelViewer()
         .then(() => window.customElements.whenDefined('model-viewer'))
         .then(() => (status.value = 'ready'))
         .catch(() => (status.value = 'error'));

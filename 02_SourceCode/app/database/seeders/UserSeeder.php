@@ -15,13 +15,15 @@ class UserSeeder extends Seeder
         $roles = Role::pluck('id', 'code');
 
         $accounts = [
-            ['admin@disanso.test', 'Quản trị viên', Role::ADMIN, null],
-            ['manager@disanso.test', 'Quản lý nghiệp vụ', Role::MANAGER, null],
-            ['partner@disanso.test', 'Đối tác di tích', Role::CONTRIBUTOR, 'Ban quản lý di tích mẫu'],
-            ['user@disanso.test', 'Khách tham quan', Role::MEMBER, null],
+        // Số điện thoại mô phỏng (đầu 09) để form đặt lịch điền sẵn contact_phone khi demo
+        $accounts = [
+            ['admin@disanso.test', 'Quản trị viên', Role::ADMIN, null, '0912000001'],
+            ['manager@disanso.test', 'Quản lý nghiệp vụ', Role::MANAGER, null, '0912000002'],
+            ['partner@disanso.test', 'Đối tác di tích', Role::CONTRIBUTOR, 'Ban quản lý di tích mẫu', '0912000003'],
+            ['user@disanso.test', 'Khách tham quan', Role::MEMBER, null, '0912345678'],
         ];
-        foreach ($accounts as [$email, $name, $role, $org]) {
-            $this->upsertUser($email, $name, $roles[$role], $password, $org);
+        foreach ($accounts as [$email, $name, $role, $org, $phone]) {
+            $this->upsertUser($email, $name, $roles[$role], $password, $org, $phone);
         }
 
         // Thành viên giả lập phục vụ thống kê; tên sinh bằng Faker tiếng Việt, cố định seed để chạy lại ổn định.

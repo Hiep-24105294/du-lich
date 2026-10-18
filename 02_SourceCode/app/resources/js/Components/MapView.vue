@@ -1,8 +1,15 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { useT } from '@/Composables/useT';
+
+// Leaflet (JS + CSS) nạp động khi bản đồ sắp vào khung nhìn, không nằm trong bundle đầu vào
+let L = null;
+async function loadLeaflet() {
+    if (L) return L;
+    const [mod] = await Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]);
+    L = mod.default;
+    return L;
+}
 
 /**
  * Bản đồ Leaflet + tile OSM. Nhận `points` [{lat,lng,title,url,cover,subtitle}]
@@ -21,6 +28,8 @@ const { t } = useT();
 
 const el = ref(null);
 const map = shallowRef(null);
+const status = ref('idle'); // idle | loading | ready | error
+const VIEWPORT_MARGIN = '200px';
 const layer = shallowRef(null);
 const CLUSTER_PX = 48;
 const CLUSTER_MAX_ZOOM = 10;
@@ -62,7 +71,9 @@ function popupHtml(p) {
     return `<div style="width:200px">${img}<strong>${escapeHtml(p.title)}</strong>${sub}${link}</div>`;
 }
 
-const markerIcon = L.divIcon({ className: '', html: '<div class="ds-marker"></div>', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] });
+function markerIcon() {
+    return L.divIcon({ className: '', html: '<div class="ds-marker"></div>', iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -26] });
+}
 
 function clusterIcon(n) {
     return L.divIcon({ className: '', html: `<div class="ds-cluster">${n}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
@@ -86,7 +97,7 @@ function render() {
     buildClusters(normalized.value).forEach((c) => {
         if (c.points.length === 1) {
             const p = c.points[0];
-            L.marker([p.lat, p.lng], { icon: markerIcon, title: p.title, alt: p.title, keyboard: true })
+            L.marker([p.lat, p.lng], { icon: markerIcon(), title: p.title, alt: p.title, keyboard: true })
                 .bindPopup(popupHtml(p))
                 .addTo(layer.value);
             return;
@@ -111,10 +122,12 @@ function fit() {
 }
 
 let resizeObs = null;
+let viewObs = null;
 
-onMounted(() => {
+function createMap() {
     map.value = L.map(el.value, { scrollWheelZoom: false, zoomControl: true }).setView(props.center, props.zoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Một máy chủ tile duy nhất (khuyến nghị của OSM) để preconnect có tác dụng
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map.value);
@@ -127,6 +140,34 @@ onMounted(() => {
     render();
     resizeObs = new ResizeObserver(() => map.value?.invalidateSize());
     resizeObs.observe(el.value);
+}
+
+async function init() {
+    if (status.value !== 'idle') return;
+    status.value = 'loading';
+    try {
+        await loadLeaflet();
+        if (!el.value) return;
+        createMap();
+        status.value = 'ready';
+    } catch {
+        status.value = 'error';
+    }
+}
+
+onMounted(() => {
+    // Chỉ khởi tạo khi bản đồ gần vào khung nhìn (trang chủ: bản đồ nằm dưới màn hình đầu)
+    if (!('IntersectionObserver' in window)) {
+        init();
+        return;
+    }
+    viewObs = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+            viewObs.disconnect();
+            init();
+        }
+    }, { rootMargin: VIEWPORT_MARGIN });
+    viewObs.observe(el.value);
 });
 
 watch(normalized, () => {
@@ -135,6 +176,7 @@ watch(normalized, () => {
 });
 
 onBeforeUnmount(() => {
+    viewObs?.disconnect();
     resizeObs?.disconnect();
     map.value?.remove();
 });
@@ -145,7 +187,9 @@ defineExpose({ flyTo: (lat, lng, z = 12) => map.value?.flyTo([lat, lng], z) });
 <template>
     <div class="relative z-0 overflow-hidden rounded-xl border border-border">
         <div ref="el" :style="{ height }" role="region" :aria-label="label || t('map.label')"></div>
-        <p v-if="!normalized.length" class="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-full bg-surface px-4 py-1 text-sm shadow">
+        <div v-if="status === 'loading'" class="skeleton absolute inset-0 rounded-none" role="status" :aria-label="t('common.loading')"></div>
+        <p v-else-if="status === 'error'" class="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted" role="alert">{{ t('map.load_error') }}</p>
+        <p v-else-if="status === 'ready' && !normalized.length" class="pointer-events-none absolute inset-x-0 top-4 mx-auto w-fit rounded-full bg-surface px-4 py-1 text-sm shadow">
             {{ t('map.no_points') }}
         </p>
     </div>

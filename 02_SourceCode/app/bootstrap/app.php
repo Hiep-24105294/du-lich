@@ -1,8 +1,10 @@
 <?php
 
+use App\Exceptions\ApiErrorResponse;
 use App\Exceptions\InertiaErrorPage;
 use App\Http\Controllers\HealthController;
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
@@ -39,7 +41,8 @@ return Application::configure(basePath: dirname(__DIR__))
             SecurityHeaders::class,
         ]);
 
-        $middleware->api(prepend: ['throttle:api']);
+        // ForceJsonResponse đứng đầu để cả lỗi 429 của throttle cũng là JSON
+        $middleware->api(prepend: [ForceJsonResponse::class, 'throttle:api']);
 
         $middleware->redirectGuestsTo(fn (Request $request) => localized_route('login'));
         $middleware->redirectUsersTo(fn (Request $request) => localized_route('account.dashboard'));
@@ -67,6 +70,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return null;
         });
+
+        // /api/*: luôn JSON {message} chung (404/403/405/429/500), không lộ tên lớp model
+        $exceptions->shouldRenderJsonWhen(fn (Request $request) => ApiErrorResponse::applies($request) || $request->expectsJson());
+        $exceptions->render(fn (Throwable $e, Request $request) => ApiErrorResponse::render($e, $request));
 
         // Request Inertia → trang Vue Error (status); request thường → Blade errors/*
         $exceptions->respond(fn ($response, Throwable $e, Request $request) => InertiaErrorPage::respond($response, $e, $request));

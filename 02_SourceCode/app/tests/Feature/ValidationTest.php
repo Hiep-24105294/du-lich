@@ -50,6 +50,41 @@ class ValidationTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
+    public function test_register_password_requires_mixed_case_and_digit(): void
+    {
+        $payload = ['name' => 'Kiểm Thử V5', 'email' => 'qa_mixed@disanso.test'];
+
+        // Chỉ chữ thường + số (ca TC-AUTH-008) → từ chối, thông báo tiếng Việt
+        $response = $this->postJson('/vi/dang-ky', $payload + ['password' => 'kiemthu2026', 'password_confirmation' => 'kiemthu2026']);
+        $response->assertUnprocessable()->assertJsonValidationErrors('password');
+        $this->assertContains('Trường mật khẩu phải chứa ít nhất một chữ hoa và một chữ thường.', $response->json('errors.password'));
+
+        // Không có chữ số → từ chối, thông báo tiếng Anh dưới /en
+        $response = $this->postJson('/en/dang-ky', $payload + ['password' => 'KiemThuAbc', 'password_confirmation' => 'KiemThuAbc']);
+        $response->assertUnprocessable();
+        $this->assertContains('The password field must contain at least one number.', $response->json('errors.password'));
+
+        $this->assertDatabaseMissing('users', ['email' => 'qa_mixed@disanso.test']);
+
+        // Đủ chữ hoa, chữ thường, chữ số → tạo được
+        $this->post('/vi/dang-ky', $payload + ['password' => 'KiemThu2026', 'password_confirmation' => 'KiemThu2026'])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('users', ['email' => 'qa_mixed@disanso.test']);
+    }
+
+    public function test_password_change_requires_mixed_case(): void
+    {
+        $user = $this->member();
+
+        $this->actingAs($user)->patchJson('/vi/tai-khoan/mat-khau', [
+            'current_password' => 'password', 'password' => 'matkhaumoi123', 'password_confirmation' => 'matkhaumoi123',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->actingAs($user)->patch('/vi/tai-khoan/mat-khau', [
+            'current_password' => 'password', 'password' => 'MatKhauMoi123', 'password_confirmation' => 'MatKhauMoi123',
+        ])->assertSessionHasNoErrors();
+    }
+
     public function test_validation_messages_are_vietnamese_with_attribute_names(): void
     {
         $response = $this->postJson('/vi/dang-ky', []);

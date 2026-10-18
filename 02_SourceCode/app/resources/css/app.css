@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+/* Font tự host (Vite băm tên file, font-display: swap, unicode-range nên chỉ tải tập ký tự cần dùng):
+   bỏ CSS Google Fonts chặn hiển thị */
+@import '@fontsource/be-vietnam-pro/400.css';
+@import '@fontsource/be-vietnam-pro/500.css';
+@import '@fontsource/be-vietnam-pro/600.css';
+@import '@fontsource/be-vietnam-pro/700.css';
+@import '@fontsource-variable/playfair-display/wght.css';
 
 @source '../**/*.blade.php';
 @source '../**/*.js';
@@ -31,7 +38,7 @@
     --color-info: var(--ds-info);
     --color-info-soft: var(--ds-info-soft);
     --color-overlay: var(--ds-overlay);
-    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-display: 'Playfair Display Variable', 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-body: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
     --radius-ds: var(--radius);

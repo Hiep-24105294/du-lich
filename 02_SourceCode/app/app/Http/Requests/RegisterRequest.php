@@ -22,7 +22,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:2', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:190', 'unique:users,email'],
-            'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()],
             'phone' => ['nullable', 'string', 'regex:/^\+?[0-9]{9,15}$/'],
         ];
     }

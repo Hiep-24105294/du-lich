@@ -15,9 +15,22 @@ class RbacTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_cannot_access_admin_dashboard(): void
+    public function test_guest_is_redirected_to_login_from_admin(): void
     {
-        $this->get('/vi/quan-tri')->assertForbidden();
+        $this->get('/vi/quan-tri')->assertRedirect('/vi/dang-nhap');
+        $this->assertSame(url('/vi/quan-tri'), session('url.intended'));
+
+        $this->get('/en/quan-tri/di-san')->assertRedirect('/en/dang-nhap');
+        $this->post('/vi/quan-tri/di-san', [])->assertRedirect('/vi/dang-nhap');
+    }
+
+    public function test_guest_returns_to_admin_after_login(): void
+    {
+        $admin = $this->admin();
+        $this->get('/vi/quan-tri')->assertRedirect('/vi/dang-nhap');
+
+        $this->post('/vi/dang-nhap', ['email' => $admin->email, 'password' => 'password'])
+            ->assertRedirect(url('/vi/quan-tri'));
     }
 
     public function test_member_cannot_access_admin_dashboard(): void

@@ -18,10 +18,22 @@
             } catch (e) {}
         })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Font tự host qua app.css (font-display: swap); preload chunk của trang hiện tại để không phải chờ app.js mới biết cần tải gì --}}
+    @php
+        $pageComponent = $page['component'] ?? null;
+        $pageFile = $pageComponent ? "resources/js/Pages/{$pageComponent}.vue" : null;
+        $layoutFile = match (true) {
+            $pageComponent === null => null,
+            str_starts_with($pageComponent, 'Admin/') => 'resources/js/Layouts/AdminLayout.vue',
+            str_starts_with($pageComponent, 'Auth/') => 'resources/js/Layouts/AuthLayout.vue',
+            default => 'resources/js/Layouts/PublicLayout.vue',
+        };
+        $pageAssets = array_values(array_filter(
+            ['resources/css/app.css', 'resources/js/app.js', $layoutFile, $pageFile],
+            fn ($f) => $f !== null && is_file(resource_path(substr($f, strlen('resources/')))),
+        ));
+    @endphp
+    @vite($pageAssets)
     @inertiaHead
 </head>
 <body class="antialiased">

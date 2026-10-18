@@ -77,7 +77,8 @@ Route::prefix('{locale}')->where(['locale' => 'vi|en'])->middleware('locale')->g
     });
 
     // ---------- Quản trị ----------
-    Route::prefix('quan-tri')->name('admin.')->middleware('role:admin,manager,contributor')->group(function () {
+    // auth trước role: khách vãng lai được chuyển tới đăng nhập (giữ url.intended), đã đăng nhập sai vai trò → 403
+    Route::prefix('quan-tri')->name('admin.')->middleware(['auth', 'role:admin,manager,contributor'])->group(function () {
         // Contributor: chỉ tuyến của mình (Policy) và đặt lịch thuộc tuyến mình
         Route::get('tuyen-tham-quan', [Admin\TourController::class, 'index'])->name('tours.index');
         Route::get('tuyen-tham-quan/moi', [Admin\TourController::class, 'create'])->name('tours.create');

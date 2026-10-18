@@ -8,6 +8,7 @@ use App\Models\HistoricalFigure;
 use App\Models\TimelineEvent;
 use App\Models\TourSlot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class ApiTest extends TestCase
@@ -47,6 +48,37 @@ class ApiTest extends TestCase
 
         $this->getJson('/api/v1/sites/khong-ton-tai')->assertNotFound();
         $this->getJson("/api/v1/sites/{$draft->slug}")->assertNotFound();
+    }
+
+    public function test_api_errors_are_json_without_accept_header_and_hide_model_class(): void
+    {
+        // Không gửi Accept: application/json (giống curl/trình duyệt)
+        $response = $this->get('/api/v1/sites/khong-ton-tai');
+        $response->assertNotFound()->assertHeader('Content-Type', 'application/json')
+            ->assertExactJson(['message' => 'Not found.']);
+        $this->assertStringNotContainsString('App\\Models', $response->getContent());
+        $this->assertStringNotContainsString('HeritageSite', $response->getContent());
+
+        $this->getJson('/api/v1/artifacts/khong-ton-tai')->assertNotFound()->assertExactJson(['message' => 'Not found.']);
+        $this->get('/api/v1/khong-co-route')->assertNotFound()->assertExactJson(['message' => 'Not found.']);
+        $this->delete('/api/v1/sites')->assertStatus(405)->assertExactJson(['message' => 'Method not allowed.']);
+    }
+
+    public function test_api_server_error_and_forbidden_are_generic_json(): void
+    {
+        Route::middleware('api')->get('/api/v1/_boom', fn () => throw new \RuntimeException('SQLSTATE secret /var/www/html'));
+        Route::middleware('api')->get('/api/v1/_deny', fn () => abort(403, 'Chi tiết nội bộ'));
+
+        $boom = $this->get('/api/v1/_boom');
+        $boom->assertStatus(500)->assertExactJson(['message' => 'Server error.']);
+        $this->assertStringNotContainsString('SQLSTATE', $boom->getContent());
+
+        $this->get('/api/v1/_deny')->assertForbidden()->assertExactJson(['message' => 'Forbidden.']);
+    }
+
+    public function test_web_404_still_renders_html(): void
+    {
+        $this->get('/vi/di-san/khong-ton-tai')->assertNotFound()->assertHeader('Content-Type', 'text/html; charset=utf-8');
     }
 
     public function test_artifacts_and_figures_endpoints(): void
