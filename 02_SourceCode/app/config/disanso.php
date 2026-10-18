@@ -1,0 +1,32 @@
+<?php
+
+return [
+    'version' => env('APP_VERSION', '1.0.0'),
+
+    'locales' => [
+        'vi' => 'Tiếng Việt',
+        'en' => 'English',
+    ],
+
+    'analytics' => [
+        'url' => env('ANALYTICS_URL', 'http://analytics:8001'),
+        'token' => env('ANALYTICS_TOKEN', ''),
+        'timeout' => (float) env('ANALYTICS_TIMEOUT', 2),
+        'status_ttl' => 60,
+    ],
+
+    'payment' => [
+        'gateway' => env('PAYMENT_GATEWAY', 'sandbox'),
+        'sandbox_secret' => env('PAYMENT_SANDBOX_SECRET', 'sandbox-secret-change-me'),
+    ],
+
+    'booking' => [
+        'hold_minutes' => (int) env('BOOKING_HOLD_MINUTES', 10),
+        'max_quantity' => 10,
+        'cancel_before_hours' => 24,
+    ],
+
+    'seed_demo_password' => env('SEED_DEMO_PASSWORD', 'DiSan@2026'),
+
+    'quality_cache_minutes' => 10,
+];

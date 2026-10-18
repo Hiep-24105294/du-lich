@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TourSlot extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['route_id', 'starts_at', 'ends_at', 'capacity', 'booked_count', 'guide_name', 'language', 'status'];
 
     protected $casts = ['starts_at' => 'datetime', 'ends_at' => 'datetime', 'capacity' => 'integer', 'booked_count' => 'integer'];

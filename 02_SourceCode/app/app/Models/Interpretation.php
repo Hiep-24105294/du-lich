@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Interpretation extends Model
 {
+    use HasFactory;
+
     public const DEPTH_POPULAR = 1;
     public const DEPTH_ADVANCED = 2;
     public const DEPTH_ACADEMIC = 3;

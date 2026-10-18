@@ -20,6 +20,11 @@ class TimelineEvent extends Model
         return $this->belongsTo(HeritageSite::class, 'site_id');
     }
 
+    public function period(): BelongsTo
+    {
+        return $this->belongsTo(Period::class);
+    }
+
     public function figure(): BelongsTo
     {
         return $this->belongsTo(HistoricalFigure::class, 'figure_id');

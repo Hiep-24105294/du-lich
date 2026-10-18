@@ -6,6 +6,7 @@ use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\Translatable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TourRoute extends Model
 {
-    use SoftDeletes, Translatable, HasMedia, HasTags;
+    use HasFactory, SoftDeletes, Translatable, HasMedia, HasTags;
 
     protected string $translationModel = TourRouteTranslation::class;
     protected string $translationForeignKey = 'route_id';
@@ -33,6 +34,11 @@ class TourRoute extends Model
     public function themeTag(): BelongsTo
     {
         return $this->belongsTo(Tag::class, 'theme_tag_id');
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function stops(): HasMany

@@ -2,24 +2,30 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            RoleSeeder::class,
+            UserSeeder::class,
+            ProvinceSeeder::class,
+            PeriodSeeder::class,
+            TagSeeder::class,
+            FigureSeeder::class,
+            SiteSeeder::class,
+            ArtifactSeeder::class,
+            RouteSeeder::class,
+            MediaSeeder::class,
+            DemoActivitySeeder::class,
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Đồng bộ số lần sử dụng thẻ từ bảng taggables.
+        DB::table('tags')->update([
+            'usage_count' => DB::raw('(SELECT COUNT(*) FROM taggables WHERE taggables.tag_id = tags.id)'),
         ]);
     }
 }

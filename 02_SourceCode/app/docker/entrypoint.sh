@@ -21,6 +21,17 @@ for i in $(seq 1 60); do
   sleep 2
 done
 
+# 2b. Test database for PHPUnit (phpunit.xml uses DB_DATABASE=disanso_test). Needs root; ignore failure.
+php -r '
+try {
+  $pdo = new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT")?:3306), "root", getenv("DB_ROOT_PASSWORD") ?: "root_secret");
+  $user = getenv("DB_USERNAME") ?: "disanso";
+  $pdo->exec("CREATE DATABASE IF NOT EXISTS `disanso_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+  $pdo->exec("GRANT ALL PRIVILEGES ON `disanso_test`.* TO `".str_replace("`", "", $user)."`@`%`");
+  echo "[entrypoint] test database disanso_test ready\n";
+} catch (Exception $e) { echo "[entrypoint] skip test database: ".$e->getMessage()."\n"; }
+' || true
+
 # 3. Migrate and seed (seed only when the roles table is empty)
 php artisan migrate --force
 if [ "$(php artisan app:is-seeded)" != "yes" ]; then
