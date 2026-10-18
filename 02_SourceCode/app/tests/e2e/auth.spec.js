@@ -93,17 +93,22 @@ test.describe('AUTH', () => {
         await shot(page, 'TC-AUTH-007');
     });
 
-    test('TC-AUTH-008 mật khẩu toàn chữ thường + số trái với gợi ý "gồm chữ hoa"', async ({ page }, ti) => {
+    test('TC-AUTH-008 mật khẩu thiếu chữ hoa (chỉ chữ thường + số) bị từ chối 422, khớp gợi ý giao diện', async ({ page }, ti) => {
+        // Vòng 2 (sau sửa qa_1): quy tắc máy chủ Password::min(8)->mixedCase()->numbers().
         const email = `qa_${rnd()}@disanso.test`;
         await registerUi(page, { email, password: 'kiemthu2026' });
-        await page.waitForTimeout(1500);
-        const accepted = !page.url().includes('/dang-ky');
-        const hint = await page.locator('.field-hint').allInnerTexts().catch(() => []);
-        actual(ti, accepted
-            ? `Máy chủ CHẤP NHẬN mật khẩu "kiemthu2026" (tạo ${email}) trong khi gợi ý ghi "Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và chữ số".`
-            : `Bị từ chối: ${(await err(page).allInnerTexts()).join(' | ')} (gợi ý: ${hint.join(' ')})`);
+        await expect(err(page).first()).toBeVisible();
+        const uiErr = (await err(page).allInnerTexts()).join(' | ');
+        const hint = (await page.locator('.field-hint').allInnerTexts().catch(() => [])).join(' ');
+        const stayed = page.url().includes('/dang-ky');
+        // Gửi thẳng (Accept JSON) để kiểm mã HTTP của máy chủ
+        const r = await send(page.request, 'POST', '/vi/dang-ky', { name: 'Kiểm Thử V5', email: `qa_${rnd()}@disanso.test`, password: 'kiemthu2026', password_confirmation: 'kiemthu2026' });
+        const pwErr = r.body?.errors?.password ?? [];
+        actual(ti, `Giao diện: ${stayed ? 'ở lại /vi/dang-ky' : 'RỜI trang đăng ký'}, lỗi "${uiErr}" (gợi ý: "${hint}"); POST JSON → HTTP ${r.status}, lỗi password: ${JSON.stringify(pwErr)}.`);
         await shot(page, 'TC-AUTH-008');
-        expect(accepted, 'Quy tắc mật khẩu phải khớp gợi ý giao diện').toBe(false);
+        expect(stayed).toBe(true);
+        expect(r.status).toBe(422);
+        expect(pwErr.length).toBeGreaterThan(0);
     });
 
     test('TC-AUTH-009 đăng xuất hủy phiên, vào lại trang tài khoản bị chuyển tới đăng nhập', async ({ page }, ti) => {

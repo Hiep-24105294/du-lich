@@ -82,10 +82,18 @@ test.describe('SEC – khách', () => {
         const h = r.headers();
         const need = ['x-frame-options', 'x-content-type-options', 'referrer-policy', 'permissions-policy', 'content-security-policy'];
         const text = need.map((k) => `${k}: ${h[k] ?? '(thiếu)'} | API: ${a.headers()[k] ?? '(thiếu)'}`).join('\n') + `\nstrict-transport-security: ${h['strict-transport-security'] ?? '(không có – HTTP localhost)'}\nserver: ${h['server']}\nx-powered-by: ${h['x-powered-by'] ?? '(không có)'}`;
-        actual(ti, need.map((k) => `${k}=${h[k] ? 'có' : 'thiếu'}`).join(', ') + `; x-powered-by=${h['x-powered-by'] ?? 'không'}; server=${h['server']}.`);
-        await showText(page, 'TC-SEC-005', 'Header phản hồi GET /vi và /api/v1/sites', text);
+        // Vòng 2: CSP mới không còn nguồn CDN (unpkg, Google Fonts, ajax.googleapis); HTML không nạp script ngoài
+        const csp = h['content-security-policy'] || '';
+        const html = await r.text();
+        const self = new URL(r.url()).origin;
+        const extScripts = [...html.matchAll(/<script[^>]+src="(https?:[^"]+)"/g)].map((m) => m[1]).filter((u) => new URL(u).origin !== self);
+        const cdn = /unpkg\.com|fonts\.googleapis|fonts\.gstatic|ajax\.googleapis/.test(csp);
+        actual(ti, need.map((k) => `${k}=${h[k] ? 'có' : 'thiếu'}`).join(', ') + `; x-powered-by=${h['x-powered-by'] ?? 'không'}; server=${h['server']}; CSP có nguồn CDN: ${cdn}; script ngoài trong HTML: ${extScripts.length}.`);
+        await showText(page, 'TC-SEC-005', 'Header phản hồi GET /vi và /api/v1/sites', `${text}\n\nCSP đầy đủ:\n${csp.split(';').map((x) => x.trim()).join('\n')}\n\nscript src ngoài trong HTML: ${extScripts.join(', ') || '(không có)'}`);
         expect(need.every((k) => h[k])).toBe(true);
         expect(h['x-frame-options']).toBe('DENY');
+        expect(cdn).toBe(false);
+        expect(extScripts).toEqual([]);
     });
 
     test('TC-SEC-006 cookie phiên HttpOnly + SameSite=Lax, phiên đổi sau đăng nhập', async ({ page, baseURL }, ti) => {

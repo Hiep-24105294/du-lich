@@ -1,17 +1,29 @@
 // Phân quyền: truy cập trái phép trang/API quản trị, sửa dữ liệu của người khác, IPN giả mạo.
 import { test, expect, request as pwRequest } from '@playwright/test';
-import { authFile, actual, shot, send, getPage, showText } from './helpers.js';
+import { PASSWORD, authFile, actual, shot, send, getPage, showText } from './helpers.js';
 
 const asRole = (role) => ({ storageState: authFile(role) });
 
 test.describe('RBAC – khách vãng lai', () => {
-    test('TC-RBAC-001 khách vào /vi/quan-tri bị chuyển tới trang đăng nhập', async ({ page }, ti) => {
+    test('TC-RBAC-001 khách vào /vi/quan-tri bị chuyển 302 tới trang đăng nhập, đăng nhập xong quay lại', async ({ page }, ti) => {
+        // Vòng 2 (sau sửa qa_2): nhóm quan-tri dùng ['auth', 'role:...'] → khách nhận 302, không còn 403.
         const res = await page.request.get('/vi/quan-tri', { maxRedirects: 0 });
+        const resEn = await page.request.get('/en/quan-tri', { maxRedirects: 0 });
         await page.goto('/vi/quan-tri');
-        actual(ti, `GET /vi/quan-tri → ${res.status()} Location ${res.headers()['location'] ?? '-'}; trình duyệt dừng ở ${new URL(page.url()).pathname} (tiêu đề "${await page.title()}").`);
+        const landed = new URL(page.url()).pathname;
         await shot(page, 'TC-RBAC-001');
+        // Đăng nhập manager ngay trên trang được chuyển tới → phải quay về /vi/quan-tri (url.intended)
+        await page.locator('input[autocomplete="username"]').fill('manager@disanso.test');
+        await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
+        await page.getByRole('button', { name: 'Đăng nhập', exact: true }).last().click();
+        await page.waitForURL(/\/vi\/quan-tri/);
+        const back = new URL(page.url()).pathname;
+        actual(ti, `GET /vi/quan-tri → ${res.status()} Location ${res.headers()['location'] ?? '-'}; GET /en/quan-tri → ${resEn.status()} ${resEn.headers()['location'] ?? '-'}; trình duyệt dừng ở ${landed}; đăng nhập manager xong quay về ${back}.`);
         expect([302, 303]).toContain(res.status());
-        expect(page.url()).toContain('/vi/dang-nhap');
+        expect(res.headers()['location']).toContain('/vi/dang-nhap');
+        expect(resEn.headers()['location']).toContain('/en/dang-nhap');
+        expect(landed).toBe('/vi/dang-nhap');
+        expect(back).toBe('/vi/quan-tri');
     });
 
     test('TC-RBAC-002 khách POST đặt lịch (không đăng nhập) bị chặn', async ({ page }, ti) => {

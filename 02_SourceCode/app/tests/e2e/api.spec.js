@@ -82,6 +82,32 @@ test.describe('API mở', () => {
         await showText(page, 'TC-API-008', 'GET /api/v1/search?q=hue, /api/v1/timeline?from=1000&to=1500', pretty({ engine: s.engine, top: s.data.slice(0, 3).map((h) => h.slug), timeline: items.slice(0, 5).map((e) => `${e.year} ${e.title}`) }));
         expect(inRange).toBe(true);
     });
+
+    test('TC-API-009 mọi lỗi dưới /api/* trả JSON gọn kể cả khi không gửi Accept: application/json', async ({ page, request }, ti) => {
+        // Vòng 2: hồi quy docs_found_1 mục 1 (ForceJsonResponse + ApiErrorResponse)
+        const probes = [
+            ['GET', '/api/v1/sites/khong-ton-tai'],
+            ['GET', '/api/v1/khong-co-route'],
+            ['DELETE', '/api/v1/sites'],
+            ['GET', '/api/v1/sites?page=abc&per_page=-5'],
+        ];
+        const out = [];
+        for (const [m, u] of probes) {
+            const r = await request.fetch(u, { method: m, headers: { Accept: 'text/html' } });
+            const t = await r.text();
+            let json = null;
+            try { json = JSON.parse(t); } catch { /* không phải JSON */ }
+            const leak = /SQLSTATE|App\\Models|vendor\/|Exception|trace/i.test(t);
+            out.push({ m, u, status: r.status(), ct: r.headers()['content-type'], json: !!json, body: t.slice(0, 100), leak });
+        }
+        const text = out.map((o) => `${o.m} ${o.u} → ${o.status} ${o.ct}; JSON=${o.json}; lộ thông tin=${o.leak}; ${o.body}`).join('\n');
+        actual(ti, text.replace(/\n/g, ' ; '));
+        await showText(page, 'TC-API-009', 'Lỗi API khi gửi Accept: text/html', text);
+        expect(out.every((o) => o.json && (o.ct || '').includes('application/json') && !o.leak)).toBe(true);
+        expect(out[0].status).toBe(404);
+        expect(out[1].status).toBe(404);
+        expect(out[2].status).toBe(405);
+    });
 });
 
 test.describe('PY – dịch vụ phân tích', () => {
@@ -143,7 +169,14 @@ test.describe('TOUR – công khai', () => {
     test('TC-TOUR-002 chi tiết tuyến có điểm dừng, bản đồ, khung giờ còn chỗ', async ({ page }, ti) => {
         const { page: p } = await getPage(page.request, '/vi/tuyen-tham-quan/dau-an-thang-long');
         await page.goto('/vi/tuyen-tham-quan/dau-an-thang-long');
-        await expect(page.locator('.leaflet-container').first()).toBeVisible();
+        // Vòng 2: bản đồ khởi tạo lười bằng IntersectionObserver (sửa qa_3) → cuộn dần cho tới khi bản đồ vào khung nhìn
+        const map = page.locator('.leaflet-container').first();
+        for (let i = 0; i < 12 && !(await map.count()); i++) {
+            await page.mouse.wheel(0, 500);
+            await page.waitForTimeout(300);
+        }
+        await expect(map).toBeVisible();
+        await map.scrollIntoViewIfNeeded();
         const r = p.props.route;
         actual(ti, `"${r.name}": ${r.stops.length} điểm dừng, ${r.slots.length} khung giờ, giá ${r.price_vnd} VND, holdMinutes=${p.props.holdMinutes}, canBook (khách)=${p.props.canBook}.`);
         await shot(page, 'TC-TOUR-002');

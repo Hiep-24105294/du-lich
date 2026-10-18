@@ -12,7 +12,8 @@ const VIEWPORTS = [
 ];
 const PAGES = [
     { key: 'home', url: '/vi', check: async (page) => (await page.locator('main a[href*="/vi/di-san/"]').filter({ visible: true }).count()) > 0 },
-    { key: 'site-detail', url: '/vi/di-san/hoang-thanh-thang-long', check: async (page) => page.locator('nav[aria-label] a[href*="depth="]').first().isVisible() },
+// Vòng 2: DepthTabs đổi sang mẫu ARIA tablist/tab (sửa qa_7), không còn <nav>
+    { key: 'site-detail', url: '/vi/di-san/hoang-thanh-thang-long', check: async (page) => page.locator('[role="tablist"] [role="tab"][href*="depth="]').first().isVisible() },
     {
         key: 'booking', url: '/vi/tuyen-tham-quan/dau-an-thang-long', auth: 'member',
         check: async (page) => {
