@@ -8,9 +8,11 @@ use App\Http\Resources\BookingItemResource;
 use App\Models\Booking;
 use App\Models\TourSlot;
 use App\Services\BookingService;
+use App\Services\Payment\PaymentGateway;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,11 +46,14 @@ class BookingController extends Controller
         ]);
     }
 
-    public function pay(Request $request, Booking $booking, PaymentService $payments): RedirectResponse
+    public function pay(Request $request, Booking $booking): RedirectResponse
     {
         $this->authorize('pay', $booking);
+        if (! app()->bound(PaymentGateway::class) || ! Route::has('payments.sandbox')) {
+            return back()->with('error', __('messages.payment.unavailable'));
+        }
         try {
-            $payment = $payments->initiate($booking, $request->user());
+            $payment = app(PaymentService::class)->initiate($booking, $request->user());
         } catch (BookingException $e) {
             return back()->with('error', $e->getMessage());
         }

@@ -31,7 +31,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 COPY docker/php.ini /usr/local/etc/php/conf.d/app.ini
 # Cache tĩnh dài hạn cho /build/assets, gzip, tinh chỉnh prefork
 COPY docker/apache-performance.conf /etc/apache2/conf-available/disanso-performance.conf
-RUN a2enconf disanso-performance
+# Header nosniff/CSP sandbox và chặn tệp thực thi trong /storage
+COPY docker/apache-security.conf /etc/apache2/conf-available/disanso-security.conf
+RUN a2enconf disanso-performance disanso-security
 
 WORKDIR /var/www/html
 COPY --from=vendor --chown=www-data:www-data /app /var/www/html

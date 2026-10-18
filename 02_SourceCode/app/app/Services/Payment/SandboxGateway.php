@@ -42,7 +42,8 @@ class SandboxGateway implements PaymentGateway
 
     public function verify(array $payload, string $signature): bool
     {
-        return $signature !== '' && hash_equals($this->sign($payload), $signature);
+        // Fail-closed: thiếu khóa thì không chấp nhận chữ ký nào
+        return $signature !== '' && $this->secret() !== '' && hash_equals($this->sign($payload), $signature);
     }
 
     private function canonical(array $payload): string

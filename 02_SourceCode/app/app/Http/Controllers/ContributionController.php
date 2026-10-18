@@ -9,13 +9,19 @@ use App\Models\Tag;
 use App\Services\AnalyticsClient;
 use App\Services\AuditLogger;
 use App\Services\SearchService;
+use App\Support\UploadPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContributionController extends Controller
 {
+    public const ATTACHMENT_DISK = 'local';
+
     public function create(Request $request): Response
     {
         return Inertia::render('Contributions/Create', [
@@ -33,9 +39,7 @@ class ContributionController extends Controller
             $subjectId = $class::query()->published()->findOrFail($data['subject_id'])->id;
         }
 
-        $path = $request->hasFile('attachment')
-            ? $request->file('attachment')->store('contributions', 'public')
-            : null;
+        $path = $request->hasFile('attachment') ? $this->storeAttachment($request->file('attachment')) : null;
 
         $contribution = Contribution::create([
             'user_id' => $request->user()->id,
@@ -63,6 +67,30 @@ class ContributionController extends Controller
         return Inertia::render('Contributions/Show', [
             'contribution' => ContributionItemResource::one($contribution),
         ]);
+    }
+
+    /** Tải tệp đính kèm: chỉ chủ đóng góp hoặc staff (Policy view); phục vụ inline, không cho trình duyệt đoán kiểu. */
+    public function attachment(Request $request, Contribution $contribution): StreamedResponse
+    {
+        $this->authorize('view', $contribution);
+        $path = (string) $contribution->attachment_path;
+        // Bản cũ từng lưu trên disk public; bản mới nằm ở disk private (storage/app/private)
+        $disk = collect([self::ATTACHMENT_DISK, 'public'])->first(fn ($d) => $path !== '' && Storage::disk($d)->exists($path));
+        abort_unless($disk, 404);
+
+        return Storage::disk($disk)->response($path, basename($path), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+            'Cache-Control' => 'private, no-store',
+        ], 'inline');
+    }
+
+    private function storeAttachment(UploadedFile $file): string
+    {
+        $extension = UploadPolicy::extensionFor('attachment', $file);
+        abort_unless($extension !== null, 422);
+
+        return $file->storeAs('contributions', UploadPolicy::randomName($extension), self::ATTACHMENT_DISK);
     }
 
     /** Gợi ý thẻ từ dịch vụ Python; dịch vụ tắt thì để trống (kiểm duyệt viên gắn tay). */

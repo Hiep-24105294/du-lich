@@ -86,7 +86,7 @@ class HeritageQuery
         if ($q === null || trim($q) === '') {
             return;
         }
-        $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($q)).'%';
+        $like = like_contains(trim($q));
         $query->where(fn ($w) => $w->where('slug', 'like', $like)
             ->orWhereHas('interpretations', fn ($i) => $i->where(fn ($x) => $x->where('title', 'like', $like)->orWhere('summary', 'like', $like))));
     }

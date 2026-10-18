@@ -148,6 +148,8 @@ class RbacTest extends TestCase
     {
         $user = User::factory()->admin()->inactive()->create();
 
-        $this->actingAs($user)->get('/vi/quan-tri')->assertForbidden();
+        // M1: tài khoản bị khóa bị đăng xuất ngay ở mọi route web, quay về trang đăng nhập
+        $this->actingAs($user)->get('/vi/quan-tri')->assertRedirect(localized_route('login', ['locale' => 'vi']));
+        $this->assertGuest();
     }
 }

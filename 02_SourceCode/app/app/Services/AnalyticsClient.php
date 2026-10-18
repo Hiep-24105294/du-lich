@@ -50,9 +50,16 @@ class AnalyticsClient
         return $this->call('get', '/stats/overview');
     }
 
-    public function reindex(): ?array
+    /**
+     * Dựng lại chỉ mục tìm kiếm của dịch vụ Python. Gọi thẳng (không qua bộ nhớ trạng thái "down")
+     * với timeout dài hơn vì dựng chỉ mục đọc toàn bộ bản diễn giải.
+     */
+    public function reindex(float $timeout = 30): ?array
     {
-        return $this->call('post', '/reindex');
+        $data = $this->send('post', '/reindex', [], $timeout);
+        Cache::put(self::STATUS_KEY, $data !== null, $this->ttl());
+
+        return $data;
     }
 
     /** Bỏ qua cuộc gọi nếu vừa biết dịch vụ đang tắt. */
@@ -67,12 +74,11 @@ class AnalyticsClient
         return $data;
     }
 
-    private function send(string $method, string $path, array $body = []): ?array
+    private function send(string $method, string $path, array $body = [], ?float $timeout = null): ?array
     {
         try {
-            $response = $method === 'get'
-                ? $this->client()->get($path, $body)
-                : $this->client()->post($path, $body);
+            $client = $this->client($timeout);
+            $response = $method === 'get' ? $client->get($path, $body) : $client->post($path, $body);
 
             if (! $response->successful()) {
                 Log::warning('Analytics service error', ['path' => $path, 'status' => $response->status()]);
@@ -89,9 +95,9 @@ class AnalyticsClient
         }
     }
 
-    private function client(): PendingRequest
+    private function client(?float $timeout = null): PendingRequest
     {
-        $timeout = (float) config('disanso.analytics.timeout', 2);
+        $timeout ??= (float) config('disanso.analytics.timeout', 2);
 
         return Http::baseUrl(rtrim((string) config('disanso.analytics.url'), '/'))
             ->timeout($timeout)

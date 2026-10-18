@@ -3,17 +3,12 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\MediaAsset;
+use App\Support\UploadPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class MediaStoreRequest extends FormRequest
 {
-    public const MIMES = [
-        'image' => 'jpg,jpeg,png,webp',
-        'audio' => 'mp3',
-        'model3d' => 'glb',
-    ];
-
     public function authorize(): bool
     {
         return $this->user()?->isStaff() ?? false;
@@ -22,18 +17,13 @@ class MediaStoreRequest extends FormRequest
     public function rules(): array
     {
         $type = (string) $this->input('media_type');
-        $mimes = self::MIMES[$type] ?? 'jpg,jpeg,png,webp,mp3,glb';
-
-        $fileRules = ['nullable', 'required_without:external_url', 'file', 'extensions:'.$mimes, 'max:20480'];
-        if ($type === 'image') {
-            // Ảnh: kiểm tra cả nội dung tệp, không chỉ phần mở rộng
-            $fileRules[] = 'mimetypes:image/jpeg,image/png,image/webp';
-        }
+        // Kiểm cả phần mở rộng lẫn nội dung thật (MIME/magic bytes); SVG/HTML không bao giờ hợp lệ
+        $fileRules = ['nullable', 'required_without:external_url', 'file', ...UploadPolicy::rules(in_array($type, UploadPolicy::MEDIA_TYPES, true) ? $type : 'image'), 'max:20480'];
 
         return [
             'subject_type' => ['required', Rule::in(['site', 'artifact', 'figure', 'route'])],
             'subject_id' => ['required', 'integer', 'min:1'],
-            'media_type' => ['required', Rule::in(['image', 'audio', 'model3d'])],
+            'media_type' => ['required', Rule::in(UploadPolicy::MEDIA_TYPES)],
             'file' => $fileRules,
             'external_url' => ['nullable', 'required_without:file', 'url:https', 'max:500'],
             'locale' => ['nullable', Rule::in(['vi', 'en'])],

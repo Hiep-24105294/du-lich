@@ -36,7 +36,7 @@ class TimelineController extends Controller
             ->when(isset($f['to']) && is_numeric($f['to']), fn ($q) => $q->where('event_year', '<=', (int) $f['to']));
 
         if (! empty($f['q'])) {
-            $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $f['q']).'%';
+            $like = like_contains($f['q']);
             $query->whereHas('translations', fn ($t) => $t->where('title', 'like', $like)->orWhere('description', 'like', $like));
         }
 

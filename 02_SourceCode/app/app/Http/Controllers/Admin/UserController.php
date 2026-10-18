@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UserUpdateRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Auth\SessionRevoker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -22,7 +23,7 @@ class UserController extends Controller
         $users = User::query()->with('role')
             ->when($filters['role'], fn ($q, $v) => $q->whereHas('role', fn ($r) => $r->where('code', $v)))
             ->when($filters['q'], function ($q, $v) {
-                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $v).'%';
+                $like = like_contains($v);
                 $q->where(fn ($w) => $w->where('name', 'like', $like)->orWhere('email', 'like', $like));
             })
             ->orderBy('id')->paginate(20)->withQueryString()
@@ -46,7 +47,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(UserUpdateRequest $request, User $user, AuditLogger $audit): RedirectResponse
+    public function update(UserUpdateRequest $request, User $user, AuditLogger $audit, SessionRevoker $revoker): RedirectResponse
     {
         $data = $request->validated();
         $actor = $request->user();
@@ -59,6 +60,9 @@ class UserController extends Controller
 
         $before = ['role_id' => $user->role_id, 'is_active' => $user->is_active];
         $user->forceFill(['role_id' => $newRole->id, 'is_active' => (bool) $data['is_active']])->save();
+        if ($before['is_active'] && ! $user->is_active) {
+            $revoker->revokeAll($user); // khóa tài khoản → mọi phiên đang mở bị hủy ngay
+        }
         $audit->log('admin.user.update', $user, ['before' => $before, 'after' => $data]);
 
         return back()->with('success', __('messages.admin.user_updated'));

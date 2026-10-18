@@ -7,14 +7,16 @@ use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Auth\SessionRevoker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function __construct(private readonly AuditLogger $audit)
+    public function __construct(private readonly AuditLogger $audit, private readonly SessionRevoker $revoker)
     {
     }
 
@@ -72,8 +74,12 @@ class ProfileController extends Controller
     public function password(PasswordUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-        $user->forceFill(['password' => $request->validated('password')])->save();
-        $request->session()->regenerate();
+        $password = $request->validated('password');
+        $user->forceFill(['password' => $password])->save();
+        // Hủy phiên ở thiết bị khác: đổi hash trong phiên (auth.session), xóa dòng sessions khác, đổi remember_token
+        Auth::logoutOtherDevices($password);
+        $this->revoker->revokeOthers($user, $request->session()->getId());
+        $request->session()->regenerate(true); // bỏ luôn bản phiên cũ
         $this->audit->log('account.password_changed', $user, [], $user);
 
         return back()->with('success', __('messages.profile.password_updated'));

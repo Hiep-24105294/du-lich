@@ -18,5 +18,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::get('openapi.json', V1\OpenApiController::class)->name('openapi');
     Route::get('ical/routes/{slug}.ics', V1\IcalController::class)->name('ical.route');
     // IPN của cổng thanh toán sandbox (server-to-server, xác minh chữ ký HMAC)
-    Route::post('payments/sandbox/ipn', V1\PaymentIpnController::class)->name('payments.ipn');
+    if (config('disanso.payment.gateway') === 'sandbox') {
+        Route::post('payments/sandbox/ipn', V1\PaymentIpnController::class)->name('payments.ipn');
+    }
 });

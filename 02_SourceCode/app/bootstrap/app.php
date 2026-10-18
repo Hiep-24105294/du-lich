@@ -3,6 +3,7 @@
 use App\Exceptions\ApiErrorResponse;
 use App\Exceptions\InertiaErrorPage;
 use App\Http\Controllers\HealthController;
+use App\Http\Middleware\EnsureActiveUser;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -12,6 +13,7 @@ use App\Services\Payment\PaymentException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        // Mặc định không tin proxy nào (client không giả được IP qua X-Forwarded-For).
+        // Triển khai sau reverse proxy/PaaS: đặt TRUSTED_PROXIES="10.0.0.0/8,..." hoặc "*".
+        $trusted = trim((string) env('TRUSTED_PROXIES', ''));
+        if ($trusted !== '') {
+            $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', $trusted)));
+        }
 
         $middleware->alias([
             'role' => EnsureRole::class,
@@ -36,6 +43,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            // auth.session: đổi mật khẩu → phiên ở thiết bị khác (giữ hash cũ) bị đăng xuất
+            AuthenticateSession::class,
+            EnsureActiveUser::class,
             SetLocale::class,
             HandleInertiaRequests::class,
             SecurityHeaders::class,

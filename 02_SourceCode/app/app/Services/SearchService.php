@@ -44,7 +44,8 @@ class SearchService
         // Python tắt/lỗi (null) hoặc chỉ mục rỗng/không khớp bản công bố ([]) → FULLTEXT MySQL
         if ($results === []) {
             if ($raw !== null) {
-                Log::info('Semantic search returned no results, using fallback', ['q' => $q, 'locale' => $locale]);
+                // Không ghi nguyên chuỗi tìm kiếm (có thể chứa dữ liệu cá nhân)
+                Log::info('Semantic search returned no results, using fallback', ['q_length' => mb_strlen($q), 'locale' => $locale, 'engine' => 'fallback']);
             }
             $engine = 'fallback';
             $results = $this->hydrate($this->fallback($q, $locale, $limit, $types), $q);
@@ -56,14 +57,17 @@ class SearchService
         return ['engine' => $engine, 'results' => $results, 'durationMs' => $duration];
     }
 
-    /** Từ khóa phổ biến 30 ngày gần nhất (có kết quả). */
+    /**
+     * Từ khóa phổ biến 30 ngày gần nhất: chỉ truy vấn có kết quả của người dùng đã đăng nhập,
+     * xếp theo số người khác nhau đã tìm (khách vãng lai không đầu độc được danh sách).
+     */
     public function popularQueries(string $locale, int $limit = 8): array
     {
         return SearchLog::query()
-            ->where('locale', $locale)->where('result_count', '>', 0)
+            ->where('locale', $locale)->where('result_count', '>', 0)->whereNotNull('user_id')
             ->where('created_at', '>=', now()->subDays(30))
-            ->select('query', DB::raw('COUNT(*) as total'))
-            ->groupBy('query')->orderByDesc('total')->limit($limit)
+            ->select('query', DB::raw('COUNT(DISTINCT user_id) as users'), DB::raw('COUNT(*) as total'))
+            ->groupBy('query')->orderByDesc('users')->orderByDesc('total')->limit($limit)
             ->pluck('query')->all();
     }
 
@@ -124,7 +128,7 @@ class SearchService
 
     private function like(string $q, string $locale, array $types): Collection
     {
-        $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q).'%';
+        $pattern = like_contains($q);
 
         return Interpretation::query()
             ->select(['subject_type', 'subject_id', 'title', 'summary'])

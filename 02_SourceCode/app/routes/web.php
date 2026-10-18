@@ -66,14 +66,18 @@ Route::prefix('{locale}')->where(['locale' => 'vi|en'])->middleware('locale')->g
         Route::get('dong-gop/moi', [ContributionController::class, 'create'])->name('contributions.create');
         Route::post('dong-gop', [ContributionController::class, 'store'])->middleware('throttle:10,1')->name('contributions.store');
         Route::get('dong-gop/{contribution}', [ContributionController::class, 'show'])->whereNumber('contribution')->name('contributions.show');
+        Route::get('dong-gop/{contribution}/tep-dinh-kem', [ContributionController::class, 'attachment'])->whereNumber('contribution')->name('contributions.attachment');
 
         Route::post('dat-lich/{slot}', [BookingController::class, 'store'])->whereNumber('slot')->middleware('throttle:20,1')->name('bookings.store');
         Route::get('dat-lich/{booking:code}', [BookingController::class, 'show'])->name('bookings.show');
         Route::post('dat-lich/{booking:code}/thanh-toan', [BookingController::class, 'pay'])->name('bookings.pay');
         Route::post('dat-lich/{booking:code}/huy', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-        Route::get('cong-thanh-toan/{payment:txn_ref}', [PaymentSandboxController::class, 'show'])->name('payments.sandbox');
-        Route::post('cong-thanh-toan/{payment:txn_ref}/ket-qua', [PaymentSandboxController::class, 'result'])->name('payments.sandbox.result');
+        // Cổng mô phỏng chỉ tồn tại khi cấu hình PAYMENT_GATEWAY=sandbox (cổng khác → 404)
+        if (config('disanso.payment.gateway') === 'sandbox') {
+            Route::get('cong-thanh-toan/{payment:txn_ref}', [PaymentSandboxController::class, 'show'])->name('payments.sandbox');
+            Route::post('cong-thanh-toan/{payment:txn_ref}/ket-qua', [PaymentSandboxController::class, 'result'])->name('payments.sandbox.result');
+        }
     });
 
     // ---------- Quản trị ----------

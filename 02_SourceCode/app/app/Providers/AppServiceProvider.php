@@ -41,9 +41,15 @@ use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /** Giá trị mẫu từng nằm trong kho mã, không bao giờ được dùng làm khóa thật. */
+    public const INSECURE_PAYMENT_SECRETS = ['sandbox-secret-change-me', 'changeme', 'secret'];
+
     public function register(): void
     {
-        $this->app->bind(PaymentGateway::class, SandboxGateway::class);
+        // Chỉ cổng mô phỏng được hiện thực; cấu hình cổng khác thì không bind (route sandbox cũng tắt)
+        if (config('disanso.payment.gateway') === 'sandbox') {
+            $this->app->bind(PaymentGateway::class, SandboxGateway::class);
+        }
         // Bảng periods nhỏ, nạp một lần cho mỗi request/lệnh seed
         $this->app->scoped(\App\Services\PeriodResolver::class);
         $this->app->singleton(\App\Services\PageCache::class);
@@ -70,6 +76,8 @@ class AppServiceProvider extends ServiceProvider
         // Resource tự bọc "data" chỉ ở API; Inertia nhận mảng phẳng
         JsonResource::withoutWrapping();
 
+        $this->ensurePaymentSecret();
+
         $this->registerAuthorization();
         $this->registerRateLimiters();
         $this->registerPageCacheInvalidation();
@@ -77,6 +85,20 @@ class AppServiceProvider extends ServiceProvider
         // Không dùng Vite::prefetch: nó tải trước mọi chunk động (model-viewer, Chart.js, trang quản trị)
         // sau sự kiện load, làm chậm LCP mobile; Inertia tự nạp chunk trang kế tiếp khi điều hướng.
         Vite::useCspNonce();
+    }
+
+    /** Production + cổng sandbox mà khóa HMAC rỗng hoặc còn giá trị mẫu công khai → dừng ngay. */
+    public function ensurePaymentSecret(): void
+    {
+        // package:discover chạy lúc build image (composer dump-autoload), khi chưa có biến môi trường runtime
+        if (! $this->app->isProduction() || config('disanso.payment.gateway') !== 'sandbox'
+            || $this->app->runningConsoleCommand('package:discover')) {
+            return;
+        }
+        $secret = (string) config('disanso.payment.sandbox_secret');
+        if ($secret === '' || in_array($secret, self::INSECURE_PAYMENT_SECRETS, true)) {
+            throw new \RuntimeException('PAYMENT_SANDBOX_SECRET must be set to a random value in production.');
+        }
     }
 
     /** Mọi model hiển thị trên trang công khai đã đệm: lưu/xóa → tăng phiên bản PageCache. */
@@ -105,11 +127,15 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerRateLimiters(): void
     {
-        // Chống dò mật khẩu: 5 lần/phút cho mỗi cặp email + IP
+        // Chống dò mật khẩu: 5 lần/phút cho mỗi cặp email + IP, thêm 5 lần/phút theo riêng email
+        // (độc lập IP) để đổi IP/X-Forwarded-For không vượt được giới hạn.
         RateLimiter::for('login', function (Request $request) {
-            $key = Str::lower((string) $request->input('email')).'|'.$request->ip();
+            $email = Str::lower(trim((string) $request->input('email')));
 
-            return Limit::perMinute(5)->by($key);
+            return [
+                Limit::perMinute(5)->by('email-ip:'.$email.'|'.$request->ip()),
+                Limit::perMinute(5)->by('email:'.$email),
+            ];
         });
 
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));

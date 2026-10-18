@@ -9,11 +9,12 @@ use App\Models\MediaAsset;
 use App\Models\TourRoute;
 use App\Services\AuditLogger;
 use App\Services\SearchService;
+use App\Support\UploadPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,8 +30,8 @@ class MediaController extends Controller
         $media = MediaAsset::query()->with(['captions', 'subject'])
             ->when($filters['type'], fn ($q, $v) => $q->where('media_type', $v))
             ->when($filters['license'], fn ($q, $v) => $q->where('license', $v))
-            ->when($filters['q'], fn ($q, $v) => $q->where(fn ($w) => $w->where('source_name', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%')
-                ->orWhere('path', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%')))
+            ->when($filters['q'], fn ($q, $v) => $q->where(fn ($w) => $w->where('source_name', 'like', like_contains($v))
+                ->orWhere('path', 'like', like_contains($v))))
             ->latest('id')->paginate(24)->withQueryString()
             ->through(fn (MediaAsset $m) => MediaItemResource::one($m) + ['subject' => $this->subject($m)]);
 
@@ -38,7 +39,7 @@ class MediaController extends Controller
             'media' => $media->toArray(),
             'filters' => $filters,
             'enums' => HeritagePresenter::commonEnums() + [
-                'media_types' => HeritagePresenter::enumList('media_types', ['image', 'audio', 'model3d']),
+                'media_types' => HeritagePresenter::enumList('media_types', UploadPolicy::MEDIA_TYPES),
                 'subject_types' => array_keys(self::SUBJECTS),
             ],
         ]);
@@ -51,7 +52,7 @@ class MediaController extends Controller
         $file = $request->file('file');
 
         $media = DB::transaction(function () use ($data, $subject, $file, $request) {
-            $path = $file?->storeAs('media/'.$data['media_type'], Str::slug($subject->slug).'-'.Str::lower(Str::random(8)).'.'.$file->extension(), 'public');
+            $path = $file ? $this->storeUpload($file, $data['media_type']) : null;
             $dims = $file && $data['media_type'] === 'image' ? @getimagesize($file->getRealPath()) : null;
 
             $media = MediaAsset::create([
@@ -92,6 +93,15 @@ class MediaController extends Controller
         $media->delete();
 
         return back()->with('success', __('messages.admin.deleted'));
+    }
+
+    /** Lưu với tên ngẫu nhiên và đuôi cố định theo loại media (không tin extension() đoán từ nội dung). */
+    private function storeUpload(UploadedFile $file, string $type): string
+    {
+        $extension = UploadPolicy::extensionFor($type, $file);
+        abort_unless($extension !== null, 422);
+
+        return $file->storeAs('media/'.$type, UploadPolicy::randomName($extension), 'public');
     }
 
     private function setCover(MediaAsset $media, $subject): void

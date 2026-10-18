@@ -35,8 +35,9 @@ class ExportController extends Controller
             ->orderBy('id')->chunk(500, function ($rows) use ($out) {
                 foreach ($rows as $b) {
                     fputcsv($out, [
-                        $b->code, $b->status, $b->slot?->route?->name, $b->slot?->starts_at?->toIso8601String(), $b->quantity,
-                        $b->total_vnd, $this->safe($b->contact_name), $this->safe($b->contact_email), $b->created_at?->toIso8601String(),
+                        self::safe($b->code), self::safe($b->status), self::safe($b->slot?->route?->name),
+                        $b->slot?->starts_at?->toIso8601String(), (int) $b->quantity, (int) $b->total_vnd,
+                        self::safe($b->contact_name), self::safe($b->contact_email), $b->created_at?->toIso8601String(),
                     ]);
                 }
             });
@@ -48,14 +49,19 @@ class ExportController extends Controller
         PageView::query()->select('viewed_on', 'subject_type', 'subject_id', 'locale', DB::raw('COUNT(*) as views'))
             ->where('viewed_on', '>=', now()->subDays(90)->toDateString())
             ->groupBy('viewed_on', 'subject_type', 'subject_id', 'locale')->orderBy('viewed_on')->get()
-            ->each(fn ($r) => fputcsv($out, [substr((string) $r->viewed_on, 0, 10), $r->subject_type, $r->subject_id, $r->locale, $r->views]));
+            ->each(fn ($r) => fputcsv($out, [
+                substr((string) $r->viewed_on, 0, 10), self::safe($r->subject_type), (int) $r->subject_id, self::safe($r->locale), (int) $r->views,
+            ]));
     }
 
-    /** Chống CSV injection: ô bắt đầu bằng = + - @ được thêm dấu nháy. */
-    private function safe(?string $value): string
+    /**
+     * Chống CSV/formula injection cho mọi ô chuỗi: ô bắt đầu (sau khoảng trắng) bằng
+     * = + - @ | % hoặc tab/CR/LF được thêm dấu nháy đơn để Excel coi là văn bản.
+     */
+    public static function safe(?string $value): string
     {
         $value = (string) $value;
 
-        return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
+        return preg_match('/^[\s\x{00A0}]*[=+\-@|%]|^[\t\r\n]/u', $value) ? "'".$value : $value;
     }
 }

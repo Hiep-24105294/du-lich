@@ -44,6 +44,7 @@ class PaymentSandboxController extends Controller
         $flash = match ($processed->status) {
             'succeeded' => ['success', __('messages.payment.success')],
             'cancelled' => ['error', __('messages.payment.cancelled')],
+            'refunded' => ['error', __('messages.payment.late_refunded')],
             default => ['error', $processed->booking->status === 'expired'
                 ? __('messages.payment.expired') : __('messages.payment.failed')],
         };

@@ -17,12 +17,16 @@ return [
 
     'payment' => [
         'gateway' => env('PAYMENT_GATEWAY', 'sandbox'),
-        'sandbox_secret' => env('PAYMENT_SANDBOX_SECRET', 'sandbox-secret-change-me'),
+        // Không có giá trị mặc định: entrypoint Docker sinh ngẫu nhiên và lưu trong volume nếu thiếu.
+        'sandbox_secret' => (string) env('PAYMENT_SANDBOX_SECRET', ''),
     ],
 
     'booking' => [
         'hold_minutes' => (int) env('BOOKING_HOLD_MINUTES', 10),
         'max_quantity' => 10,
+        // Chống chiếm giữ chỗ: số đặt lịch chưa thanh toán đồng thời và tổng chỗ mỗi ngày cho một tài khoản
+        'max_active_per_user' => (int) env('BOOKING_MAX_ACTIVE_PER_USER', 3),
+        'max_seats_per_day' => (int) env('BOOKING_MAX_SEATS_PER_DAY', 10),
         'cancel_before_hours' => 24,
     ],
 

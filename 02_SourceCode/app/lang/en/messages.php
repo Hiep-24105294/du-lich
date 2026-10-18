@@ -23,6 +23,8 @@ return [
         'reviewed' => 'Review result saved.',
     ],
     'booking' => [
+        'too_many_active' => 'You already have :max unpaid bookings. Please pay for or cancel one before holding new seats.',
+        'daily_seat_limit' => 'Each account can book at most :max seats per day (:left left).',
         'held' => 'Your seats are held for :minutes minutes. Please pay to confirm.',
         'only_left' => 'Only :count seat(s) left.',
         'slot_unavailable' => 'This time slot is no longer open for booking.',
@@ -34,6 +36,8 @@ return [
         'status_updated' => 'Booking status updated.',
     ],
     'payment' => [
+        'late_refunded' => 'Your hold expired before the payment was recorded; the transaction has been refunded (simulated).',
+        'unavailable' => 'The payment gateway is currently unavailable.',
         'success' => 'Payment successful. Your booking is confirmed.',
         'failed' => 'Payment failed. You may retry while your seats are held.',
         'cancelled' => 'You cancelled the payment.',

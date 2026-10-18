@@ -24,7 +24,7 @@ class TagController extends Controller
         $filters = $this->filters($request, ['q', 'group']);
         $tags = Tag::query()->with(['translations', 'parent.translations'])
             ->when($filters['group'], fn ($q, $v) => $q->where('tag_group', $v))
-            ->when($filters['q'], fn ($q, $v) => $q->where('slug', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%'))
+            ->when($filters['q'], fn ($q, $v) => $q->where('slug', 'like', like_contains($v)))
             ->orderBy('tag_group')->orderBy('slug')->get();
 
         return Inertia::render('Admin/Tags/Index', [

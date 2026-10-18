@@ -50,7 +50,7 @@ class BookingController extends Controller
             ->when(self::date($f['from'] ?? null), fn ($q, $v) => $q->where('created_at', '>=', $v.' 00:00:00'))
             ->when(self::date($f['to'] ?? null), fn ($q, $v) => $q->where('created_at', '<=', $v.' 23:59:59'))
             ->when($f['q'] ?? null, function ($q, $v) {
-                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $v).'%';
+                $like = like_contains($v);
                 $q->where(fn ($w) => $w->where('code', 'like', $like)->orWhere('contact_name', 'like', $like)->orWhere('contact_email', 'like', $like));
             });
     }

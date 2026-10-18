@@ -181,7 +181,12 @@ class PaymentStateMachineTest extends TestCase
 
         app(PaymentService::class)->handleCallback(...array_values(app(PaymentService::class)->simulate($payment, 'success')));
 
-        $this->assertSame('failed', $payment->fresh()->status);
+        // M4: tiền đến muộn → ghi nhận rồi hoàn ngay (sandbox), booking không thành paid
+        $payment->refresh();
+        $this->assertSame('refunded', $payment->status);
+        $this->assertNotNull($payment->refunded_at);
+        $this->assertSame('late_payment_auto_refund', $payment->gateway_payload['note']);
         $this->assertNotSame('paid', $this->booking->fresh()->status);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'payment.late_refunded']);
     }
 }

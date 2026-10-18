@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ContributionItemResource extends BaseResource
 {
@@ -26,7 +25,7 @@ class ContributionItemResource extends BaseResource
             'locale' => $this->locale,
             'title' => $this->title,
             'body' => $this->body,
-            'attachment_url' => $this->attachment_path ? Storage::disk('public')->url($this->attachment_path) : null,
+            'attachment_url' => $this->attachment_path ? localized_route('contributions.attachment', ['contribution' => $this->id]) : null,
             'suggested_tags' => collect($this->suggested_tags ?? [])->map(fn ($t) => [
                 'slug' => $t['slug'] ?? null,
                 'name' => $t['name'] ?? ($t['slug'] ?? null),

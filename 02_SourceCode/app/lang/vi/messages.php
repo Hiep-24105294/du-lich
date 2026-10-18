@@ -23,6 +23,8 @@ return [
         'reviewed' => 'Đã cập nhật kết quả kiểm duyệt.',
     ],
     'booking' => [
+        'too_many_active' => 'Bạn đang có :max đặt lịch chưa thanh toán. Vui lòng thanh toán hoặc hủy bớt trước khi giữ chỗ mới.',
+        'daily_seat_limit' => 'Mỗi tài khoản chỉ được đặt tối đa :max chỗ mỗi ngày (bạn còn :left chỗ).',
         'held' => 'Đã giữ chỗ cho bạn trong :minutes phút. Vui lòng thanh toán để xác nhận.',
         'only_left' => 'Chỉ còn :count chỗ.',
         'slot_unavailable' => 'Khung giờ này không còn mở đặt chỗ.',
@@ -34,6 +36,8 @@ return [
         'status_updated' => 'Đã cập nhật trạng thái đặt lịch.',
     ],
     'payment' => [
+        'late_refunded' => 'Giữ chỗ đã hết hạn trước khi thanh toán được ghi nhận; giao dịch đã được hoàn tiền (mô phỏng).',
+        'unavailable' => 'Cổng thanh toán hiện không khả dụng.',
         'success' => 'Thanh toán thành công. Đặt lịch đã được xác nhận.',
         'failed' => 'Thanh toán thất bại. Bạn có thể thử lại trong thời gian giữ chỗ.',
         'cancelled' => 'Bạn đã hủy thanh toán.',

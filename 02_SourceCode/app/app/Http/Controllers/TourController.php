@@ -21,7 +21,7 @@ class TourController extends Controller
             ->when($filters['province'], fn ($q, $v) => $q->whereHas('province', fn ($p) => $p->where('code', $v)))
             ->when($filters['difficulty'], fn ($q, $v) => $q->where('difficulty', $v))
             ->when($filters['q'], function ($q, $v) {
-                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $v).'%';
+                $like = like_contains($v);
                 $q->whereHas('translations', fn ($t) => $t->where('name', 'like', $like)->orWhere('description', 'like', $like));
             })
             ->orderBy('price_vnd')->orderBy('id')

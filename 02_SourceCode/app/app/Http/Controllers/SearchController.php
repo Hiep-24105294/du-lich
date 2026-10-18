@@ -31,7 +31,7 @@ class SearchController extends Controller
     {
         $tags = Tag::query()->with('translations')
             ->when($query !== '', function ($q) use ($query) {
-                $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query).'%';
+                $like = like_contains($query);
                 $q->whereHas('translations', fn ($t) => $t->where('name', 'like', $like));
             })
             ->orderByDesc('usage_count')->limit(8)->get();

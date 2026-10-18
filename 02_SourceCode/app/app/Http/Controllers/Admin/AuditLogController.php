@@ -17,8 +17,8 @@ class AuditLogController extends Controller
         $date = fn ($v) => $v && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) ? $v : null;
 
         $logs = AuditLog::query()->with('user:id,name,email')
-            ->when($filters['action'], fn ($q, $v) => $q->where('action', 'like', str_replace(['%', '_'], ['\\%', '\\_'], $v).'%'))
-            ->when($filters['user'], fn ($q, $v) => $q->whereHas('user', fn ($u) => $u->where('email', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%')))
+            ->when($filters['action'], fn ($q, $v) => $q->where('action', 'like', like_escape($v).'%'))
+            ->when($filters['user'], fn ($q, $v) => $q->whereHas('user', fn ($u) => $u->where('email', 'like', like_contains($v))))
             ->when($date($filters['from']), fn ($q, $v) => $q->where('created_at', '>=', $v.' 00:00:00'))
             ->when($date($filters['to']), fn ($q, $v) => $q->where('created_at', '<=', $v.' 23:59:59'))
             ->latest('id')->paginate(30)->withQueryString()

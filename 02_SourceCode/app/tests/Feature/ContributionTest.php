@@ -18,7 +18,7 @@ class ContributionTest extends TestCase
 
     public function test_member_submits_contribution_with_suggested_tags_and_attachment(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $tag = Tag::create(['slug' => 'kinh-do-co', 'tag_group' => 'chu_de']);
         $tag->translations()->create(['locale' => 'vi', 'name' => 'Kinh đô cổ']);
         $site = HeritageSite::factory()->create();
@@ -34,8 +34,9 @@ class ContributionTest extends TestCase
         $c = Contribution::firstOrFail();
         $this->assertEquals([['tag_id' => $tag->id, 'slug' => 'kinh-do-co', 'name' => 'Kinh đô cổ', 'score' => 0.912]], $c->suggested_tags);
         $this->assertSame('site', $c->subject_type);
-        Storage::disk('public')->assertExists($c->attachment_path);
-        $this->assertStringStartsWith('contributions/', $c->attachment_path);
+        // Tệp đính kèm nằm ở disk private, tên ngẫu nhiên + đuôi theo MIME thật
+        Storage::disk('local')->assertExists($c->attachment_path);
+        $this->assertMatchesRegularExpression('#^contributions/[a-z0-9]{40}\.png$#', $c->attachment_path);
     }
 
     public function test_contribution_saved_without_tags_when_analytics_down(): void

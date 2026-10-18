@@ -33,7 +33,7 @@ class TourController extends Controller
         $routes = TourRoute::query()->with([...RouteCardResource::eager(), 'owner:id,name'])->withCount(['stops', 'slots'])
             ->when(! $user->isStaff(), fn ($q) => $q->where('created_by', $user->id))
             ->when($filters['status'], fn ($q, $v) => $q->where('status', $v))
-            ->when($filters['q'], fn ($q, $v) => $q->whereHas('translations', fn ($t) => $t->where('name', 'like', '%'.str_replace(['%', '_'], ['\\%', '\\_'], $v).'%')))
+            ->when($filters['q'], fn ($q, $v) => $q->whereHas('translations', fn ($t) => $t->where('name', 'like', like_contains($v))))
             ->latest('updated_at')->paginate(20)->withQueryString()
             ->through(fn ($r) => RouteCardResource::one($r) + [
                 'slots_count' => (int) $r->slots_count,

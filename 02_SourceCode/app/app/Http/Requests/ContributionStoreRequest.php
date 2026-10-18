@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Contribution;
+use App\Support\UploadPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,7 +23,7 @@ class ContributionStoreRequest extends FormRequest
             'body' => ['required', 'string', 'min:20', 'max:20000'],
             'subject_type' => ['nullable', 'required_with:subject_id', Rule::in(['site', 'artifact', 'figure'])],
             'subject_id' => ['nullable', 'required_with:subject_type', 'integer', 'min:1'],
-            'attachment' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'attachment' => ['nullable', 'file', ...UploadPolicy::rules('attachment'), 'max:5120'],
         ];
     }
 }

@@ -17,3 +17,19 @@ if (! function_exists('localized_route')) {
         return route($name, array_merge(['locale' => $locale], $params), $absolute);
     }
 }
+
+if (! function_exists('like_escape')) {
+    /** Thoát ký tự đại diện của LIKE (\ % _) để chuỗi người dùng chỉ khớp nguyên văn. */
+    function like_escape(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+    }
+}
+
+if (! function_exists('like_contains')) {
+    /** Mẫu LIKE "chứa chuỗi" đã thoát ký tự đại diện. */
+    function like_contains(string $value): string
+    {
+        return '%'.like_escape($value).'%';
+    }
+}

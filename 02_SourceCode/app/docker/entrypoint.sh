@@ -26,6 +26,16 @@ if [ -z "$APP_KEY" ]; then
   export APP_KEY="$(cat $KEY_FILE)"
 fi
 
+# 1b. Khóa HMAC cổng thanh toán sandbox: thiếu hoặc còn giá trị mẫu công khai → sinh ngẫu nhiên 32 byte một lần, lưu trong volume
+SECRET_FILE=storage/app/.payment_secret
+if [ -z "$PAYMENT_SANDBOX_SECRET" ] || [ "$PAYMENT_SANDBOX_SECRET" = "sandbox-secret-change-me" ]; then
+  if [ ! -s "$SECRET_FILE" ]; then
+    run_as_www sh -c "umask 077; php -r 'echo bin2hex(random_bytes(32)).PHP_EOL;' > $SECRET_FILE"
+    echo "[entrypoint] generated PAYMENT_SANDBOX_SECRET in $SECRET_FILE"
+  fi
+  export PAYMENT_SANDBOX_SECRET="$(cat $SECRET_FILE)"
+fi
+
 # 2. Wait for the database (max ~2 minutes)
 echo "[entrypoint] waiting for database ${DB_HOST}:${DB_PORT:-3306} ..."
 for i in $(seq 1 60); do
@@ -35,16 +45,7 @@ for i in $(seq 1 60); do
   sleep 2
 done
 
-# 2b. Test database for PHPUnit (phpunit.xml uses DB_DATABASE=disanso_test). Needs root; ignore failure.
-php -r '
-try {
-  $pdo = new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT")?:3306), "root", getenv("DB_ROOT_PASSWORD") ?: "root_secret");
-  $user = getenv("DB_USERNAME") ?: "disanso";
-  $pdo->exec("CREATE DATABASE IF NOT EXISTS `disanso_test` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-  $pdo->exec("GRANT ALL PRIVILEGES ON `disanso_test`.* TO `".str_replace("`", "", $user)."`@`%`");
-  echo "[entrypoint] test database disanso_test ready\n";
-} catch (Exception $e) { echo "[entrypoint] skip test database: ".$e->getMessage()."\n"; }
-' || true
+# (DB test disanso_test do MySQL tạo qua db-init/01-test-db.sql; app không cần quyền root MySQL)
 
 # 3. Migrate and seed (seed only when the roles table is empty)
 run_as_www php artisan migrate --force
@@ -52,6 +53,26 @@ if [ "$(run_as_www php artisan app:is-seeded)" != "yes" ]; then
   echo "[entrypoint] seeding sample heritage data ..."
   run_as_www php artisan db:seed --force
 fi
+# 3b. Dựng lại chỉ mục tìm kiếm của analytics ngay sau seed (analytics có thể đã đánh chỉ mục khi seed còn dở).
+#     Thử tối đa 10 lần cách 3 giây vì analytics có thể lên sau; thất bại không chặn khởi động.
+reindex_analytics() {
+  url="${ANALYTICS_URL:-http://analytics:8001}"
+  url="${url%/}/reindex"
+  for i in $(seq 1 10); do
+    if command -v curl >/dev/null 2>&1; then
+      result=$(curl -fsS -m 60 -X POST -H "X-Analytics-Token: ${ANALYTICS_TOKEN}" -H "Accept: application/json" "$url" 2>&1) && {
+        echo "[entrypoint] analytics reindex: $result"; return 0; }
+    else
+      result=$(php -r '$ctx=stream_context_create(["http"=>["method"=>"POST","timeout"=>60,"header"=>"X-Analytics-Token: ".getenv("ANALYTICS_TOKEN")."\r\nAccept: application/json\r\nContent-Length: 0\r\n"]]); $r=@file_get_contents($argv[1],false,$ctx); if($r===false){fwrite(STDERR,"request failed");exit(1);} echo $r;' "$url" 2>&1) && {
+        echo "[entrypoint] analytics reindex: $result"; return 0; }
+    fi
+    sleep 3
+  done
+  echo "[entrypoint] analytics reindex: failed after 10 attempts ($result) - search uses MySQL fallback until next scheduled reindex"
+  return 0
+}
+reindex_analytics || true
+
 # public/storage symlink nằm ngoài storage/ nên tạo bằng root là đủ
 php artisan storage:link >/dev/null 2>&1 || true
 run_as_www php artisan optimize:clear >/dev/null

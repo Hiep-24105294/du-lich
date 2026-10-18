@@ -43,7 +43,8 @@ class BookingItemResource extends BaseResource
                     'url' => localized_route('tours.show', ['route' => $route->slug]),
                 ] : null,
             ]) : null,
-            'payments' => $this->payments->sortByDesc('id')->map(fn ($p) => [
+            // txn_ref đủ để gửi IPN giả → chỉ chủ booking và staff thấy giao dịch (contributor thì không)
+            'payments' => ! $this->canSeePayments($request) ? [] : $this->payments->sortByDesc('id')->map(fn ($p) => [
                 'txn_ref' => $p->txn_ref,
                 'status' => $p->status,
                 'amount_vnd' => (int) $p->amount_vnd,
@@ -60,5 +61,12 @@ class BookingItemResource extends BaseResource
         }
 
         return $data;
+    }
+
+    private function canSeePayments(Request $request): bool
+    {
+        $viewer = $request->user();
+
+        return $viewer !== null && ($viewer->isStaff() || (int) $viewer->id === (int) $this->user_id);
     }
 }

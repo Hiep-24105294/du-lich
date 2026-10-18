@@ -22,6 +22,16 @@ class BookingException extends RuntimeException
         return new self(__('messages.booking.slot_unavailable'), 'slot');
     }
 
+    public static function tooManyActive(int $max): self
+    {
+        return new self(__('messages.booking.too_many_active', ['max' => $max]), 'quantity');
+    }
+
+    public static function dailySeatLimit(int $max, int $left): self
+    {
+        return new self(__('messages.booking.daily_seat_limit', ['max' => $max, 'left' => $left]), 'quantity', $left);
+    }
+
     public static function invalidTransition(string $from, string $to): self
     {
         return new self(__('messages.booking.invalid_transition', ['from' => $from, 'to' => $to]), 'status');

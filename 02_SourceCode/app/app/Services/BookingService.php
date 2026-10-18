@@ -34,12 +34,14 @@ class BookingService
         $quantity = (int) $data['quantity'];
 
         $booking = DB::transaction(function () use ($slot, $user, $data, $quantity) {
+            // Khóa dòng user trước (thứ tự user → slot) để hai yêu cầu song song của cùng người
+            // không cùng vượt hạn mức; transition() chỉ khóa slot → booking nên không tạo vòng khóa.
+            User::query()->whereKey($user->getKey())->lockForUpdate()->first();
             /** @var TourSlot $locked */
             $locked = TourSlot::query()->whereKey($slot->getKey())->lockForUpdate()->firstOrFail();
 
-            if ($locked->status !== 'open' || $locked->starts_at->isPast()) {
-                throw BookingException::slotUnavailable();
-            }
+            $this->assertSlotBookable($locked);
+            $this->assertUserQuota($user, $quantity);
             $this->releaseExpiredOnLockedSlot($locked);
 
             $available = $locked->capacity - $locked->booked_count;
@@ -71,6 +73,40 @@ class BookingService
         $this->audit->log('booking.held', $booking, ['code' => $booking->code, 'quantity' => $quantity], $user);
 
         return $booking;
+    }
+
+    /** Khung giờ mở, chưa bắt đầu và thuộc tuyến đã công bố, chưa xóa mềm. */
+    private function assertSlotBookable(TourSlot $slot): void
+    {
+        $routePublished = $slot->route()->published()->exists(); // route() mặc định loại bản ghi đã xóa mềm
+        if ($slot->status !== 'open' || $slot->starts_at->isPast() || ! $routePublished) {
+            throw BookingException::slotUnavailable();
+        }
+    }
+
+    /**
+     * Chống chiếm giữ tồn kho: tối đa N đặt lịch chưa thanh toán còn hạn cùng lúc
+     * và tối đa M chỗ (held/pending/paid/expired) tạo trong ngày cho mỗi tài khoản.
+     */
+    private function assertUserQuota(User $user, int $quantity): void
+    {
+        $maxActive = (int) config('disanso.booking.max_active_per_user', 3);
+        $active = Booking::query()->where('user_id', $user->id)
+            ->whereIn('status', [Booking::HELD, Booking::PENDING_PAYMENT])
+            ->where(fn ($q) => $q->whereNull('hold_expires_at')->orWhere('hold_expires_at', '>=', now()))
+            ->count();
+        if ($active >= $maxActive) {
+            throw BookingException::tooManyActive($maxActive);
+        }
+
+        $maxSeats = (int) config('disanso.booking.max_seats_per_day', 10);
+        $seatsToday = (int) Booking::query()->where('user_id', $user->id)
+            ->whereNotIn('status', [Booking::CANCELLED, Booking::REFUNDED])
+            ->where('created_at', '>=', now()->startOfDay())
+            ->sum('quantity');
+        if ($seatsToday + $quantity > $maxSeats) {
+            throw BookingException::dailySeatLimit($maxSeats, max(0, $maxSeats - $seatsToday));
+        }
     }
 
     /** Giải phóng mọi phiếu giữ chỗ quá hạn (lệnh app:expire-holds chạy mỗi phút). */
