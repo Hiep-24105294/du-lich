@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "XSRF-TOKEN",
+      "value": "eyJpdiI6IktRY0JQNnN3bGdXT0pPT2dtNFJxZVE9PSIsInZhbHVlIjoidk8wbDNWZ3pwTUpHS3FaanVIM3hBN3J0WjBKS0d5T3JxK243MEFqYVkxK0JSWTdVQzQ2QzZqODhWUC9mMTJ6aWlsVCsveFQyOUR5YUFUU1NEL0szNStxNDdBenlNUXdCL21pZlUva0JKMWRKdld5NVJjTjMwbVJ0aTNSR3pBU0MiLCJtYWMiOiI4YzI4YWYyODk5OThlZGVlNWRkNWNjNTZjNjhiODcxNjZhODM0OTE0YjZmZmNhNzQ2ZDA0ODU4ZWI0ZmJjOWY5IiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1792324683.998,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "disanso-session",
+      "value": "eyJpdiI6ImhjNWtFTTlXWGRpWlF2OHVmeTQ4VXc9PSIsInZhbHVlIjoicXZ6UTRUbWhGcklXV2V5dUhBdmsrR1J0STJ0dlg1UTdlVlJKVmMydmYvK2RDS1V3MVZ6UU5jWjlTOUFkVFZTcXVYNUJFUUIyL1U2OFk0NkZDbHUreDU1YkZtYU81RnJkdGxVbit4RnRDeXdmVDlKWk5iK3RoY0RxOEM5OHJjai8iLCJtYWMiOiI5NWJkMzI2YmZiYjdhNmFlMTg2ODkwYmQwMjUyYTA3NmE3ZDgyYmI2ZTQ1ODcyZTc4YmI5OWM1OTkxZmE0OTY2IiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1792324683.998,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

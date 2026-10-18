@@ -1,0 +1,299 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/node_modules/.bin/playwright",
+      "test",
+      "fallback",
+      "--project=chromium",
+      "--reporter=list,json"
+    ],
+    "configFile": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/playwright.config.js",
+    "rootDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/global-setup.js",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/responsive\\.spec\\.js/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/responsive\\.spec\\.js/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "snapshotDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:8080",
+          "locale": "vi-VN",
+          "timezoneId": "Asia/Ho_Chi_Minh",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Safari/537.36",
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "fallback.spec.js",
+      "file": "fallback.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "TC-SEARCH-006 tắt dịch vụ phân tích: tìm kiếm tự chuyển FULLTEXT, có thông báo",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "actual",
+                  "description": "engine=fallback, 20 kết quả (đầu: kim-lien), thông báo hiển thị: true, tải trang 1834 ms."
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T10:20:01.453Z",
+                  "annotations": [
+                    {
+                      "type": "actual",
+                      "description": "engine=fallback, 20 kết quả (đầu: kim-lien), thông báo hiển thị: true, tải trang 1834 ms."
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "054d9c7032f2ddc10ab5-48941d86a16c15530977",
+          "file": "fallback.spec.js",
+          "line": 7,
+          "column": 1
+        },
+        {
+          "title": "TC-PY-005 tắt dịch vụ phân tích: /healthz báo analytics down, trang công khai vẫn chạy",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [
+                {
+                  "type": "actual",
+                  "description": "/healthz={\"status\":\"ok\",\"time\":\"2026-10-18T17:20:03+07:00\",\"db\":\"ok\",\"analytics\":\"down\",\"version\":\"1.0.0\"}; /api/v1/search engine=fallback (20 kết quả); trang chi tiết → 200."
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 365,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-18T10:20:03.864Z",
+                  "annotations": [
+                    {
+                      "type": "actual",
+                      "description": "/healthz={\"status\":\"ok\",\"time\":\"2026-10-18T17:20:03+07:00\",\"db\":\"ok\",\"analytics\":\"down\",\"version\":\"1.0.0\"}; /api/v1/search engine=fallback (20 kết quả); trang chi tiết → 200."
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "054d9c7032f2ddc10ab5-33e81bac44857454ec81",
+          "file": "fallback.spec.js",
+          "line": 20,
+          "column": 1
+        }
+      ],
+      "suites": [
+        {
+          "title": "quản trị khi analytics dừng",
+          "file": "fallback.spec.js",
+          "line": 31,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TC-ADMIN-011 kiểm định chất lượng khi analytics dừng báo lỗi thân thiện, không 500",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "actual",
+                      "description": "POST kiểm tra → 302; analyticsUp=false, lastError=\"Không kết nối được dịch vụ phân tích. Vui lòng thử lại sau.\", flash.error=\"Không kết nối được dịch vụ phân tích. Vui lòng thử lại sau.\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1869,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:20:04.242Z",
+                      "annotations": [
+                        {
+                          "type": "actual",
+                          "description": "POST kiểm tra → 302; analyticsUp=false, lastError=\"Không kết nối được dịch vụ phân tích. Vui lòng thử lại sau.\", flash.error=\"Không kết nối được dịch vụ phân tích. Vui lòng thử lại sau.\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "054d9c7032f2ddc10ab5-6d2a13c61d44fc3278c6",
+              "file": "fallback.spec.js",
+              "line": 33,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-18T10:20:00.276Z",
+    "duration": 5883.595,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

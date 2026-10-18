@@ -1,0 +1,1074 @@
+{
+  "config": {
+    "argv": [
+      "/usr/bin/node",
+      "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/node_modules/.bin/playwright",
+      "test",
+      "booking",
+      "--project=chromium",
+      "--reporter=list,json"
+    ],
+    "configFile": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/playwright.config.js",
+    "rootDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/global-setup.js",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/responsive\\.spec\\.js/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/responsive\\.spec\\.js/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "chromium",
+        "testDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "snapshotDir": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 60000,
+        "use": {
+          "baseURL": "http://localhost:8080",
+          "locale": "vi-VN",
+          "timezoneId": "Asia/Ho_Chi_Minh",
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.8078.4 Safari/537.36",
+          "screen": {
+            "width": 1920,
+            "height": 1080
+          },
+          "deviceScaleFactor": 1,
+          "isMobile": false,
+          "hasTouch": false,
+          "defaultBrowserType": "chromium"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": "chromium"
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "booking.spec.js",
+      "file": "booking.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "BOOK + PAY",
+          "file": "booking.spec.js",
+          "line": 43,
+          "column": 15,
+          "specs": [
+            {
+              "title": "TC-BOOK-001 giữ chỗ 2 khách thành công, trừ chỗ và hiện đếm ngược",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Tạo BK-E2SV41QB, status=held, total=900000 VND, seconds_left=599; chỗ trống 18 → 16."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2066,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:44.555Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Tạo BK-E2SV41QB, status=held, total=900000 VND, seconds_left=599; chỗ trống 18 → 16."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-41d84e17cb3f0ca1ab9f",
+              "file": "booking.spec.js",
+              "line": 46,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-002 mã đặt lịch ngẫu nhiên, không lộ id tự tăng",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Mã BK-E2SV41QB khớp ^BK-[A-Z0-9]{8}$: true; GET /vi/dat-lich/29 (id số) → 404."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 296,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:46.786Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Mã BK-E2SV41QB khớp ^BK-[A-Z0-9]{8}$: true; GET /vi/dat-lich/29 (id số) → 404."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-1f357e6861da31b5ff4b",
+              "file": "booking.spec.js",
+              "line": 60,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-003 số khách 0 (dưới biên) bị từ chối",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Ở lại trang tuyến, lỗi: \"Trường số khách phải lớn hơn hoặc bằng 1.\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1712,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:47.098Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Ở lại trang tuyến, lỗi: \"Trường số khách phải lớn hơn hoặc bằng 1.\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-e8ccfd3d1a79ea4bdf24",
+              "file": "booking.spec.js",
+              "line": 70,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-004 số khách 11 (trên biên 10) bị từ chối",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Lỗi: \"Mỗi lần đặt tối đa 10 khách.\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1630,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:48.821Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Lỗi: \"Mỗi lần đặt tối đa 10 khách.\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-9832563b4395285af73d",
+              "file": "booking.spec.js",
+              "line": 79,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-005 số khách 10 (đúng biên trên) được chấp nhận",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Tạo BK-7F4CQOLT, quantity=10, status=held."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1617,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:50.463Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Tạo BK-7F4CQOLT, quantity=10, status=held."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-d91ccf406ceb2e6a7ffb",
+              "file": "booking.spec.js",
+              "line": 87,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-006 số điện thoại sai định dạng bị từ chối",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Lỗi: \"Số điện thoại không hợp lệ (9–15 chữ số, có thể bắt đầu bằng +).\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1652,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:52.093Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Lỗi: \"Số điện thoại không hợp lệ (9–15 chữ số, có thể bắt đầu bằng +).\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-064938332d31fdaaa5ec",
+              "file": "booking.spec.js",
+              "line": 99,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-007 giữ chỗ vượt sức chứa còn lại bị từ chối \"Chỉ còn N chỗ\"",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Admin tạo khung giờ #87 2026-12-19 15:28 (sức chứa 1) → HTTP 302; đặt 2 khách → lỗi \"Chỉ còn 1 chỗ.\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1939,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:53.761Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Admin tạo khung giờ #87 2026-12-19 15:28 (sức chứa 1) → HTTP 302; đặt 2 khách → lỗi \"Chỉ còn 1 chỗ.\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-7324a3842540cc7ef9e5",
+              "file": "booking.spec.js",
+              "line": 107,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-008 hai người cùng đặt chỗ cuối cùng đồng thời: chỉ một thành công",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "A: HTTP 302 http://localhost:8080/vi/dat-lich/BK-QMYHOXH3; B: HTTP 422 {\"quantity\":[\"Chỉ còn 0 chỗ.\"]}; Khung giờ #87: capacity=1, booked_count=1, available=0"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 598,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:55.716Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "A: HTTP 302 http://localhost:8080/vi/dat-lich/BK-QMYHOXH3; B: HTTP 422 {\"quantity\":[\"Chỉ còn 0 chỗ.\"]}; Khung giờ #87: capacity=1, booked_count=1, available=0"
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-6389a376a687c448c976",
+              "file": "booking.spec.js",
+              "line": 129,
+              "column": 5
+            },
+            {
+              "title": "TC-PAY-001 thanh toán thất bại: giao dịch failed, đặt lịch về held",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "SB-261018172957-ZGDHBK: payment=failed; booking=held, can_pay=true."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2023,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:56.329Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "SB-261018172957-ZGDHBK: payment=failed; booking=held, can_pay=true."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-09370c5fe8bd515d1ee7",
+              "file": "booking.spec.js",
+              "line": 151,
+              "column": 5
+            },
+            {
+              "title": "TC-PAY-002 người dùng hủy giao dịch tại cổng: payment cancelled",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "SB-261018172959-TMLP2O: payment=cancelled; booking=held, can_pay=true."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2009,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:29:58.359Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "SB-261018172959-TMLP2O: payment=cancelled; booking=held, can_pay=true."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-9ff56fb6e059f4e3181f",
+              "file": "booking.spec.js",
+              "line": 161,
+              "column": 5
+            },
+            {
+              "title": "TC-PAY-003 thanh toán thành công: booking paid, có thời điểm thanh toán",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "SB-261018173001-7AG7V7: payment=succeeded, paid_at=2026-10-18T17:30:01+07:00, amount=900000; booking=paid."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1944,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:30:00.375Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "SB-261018173001-7AG7V7: payment=succeeded, paid_at=2026-10-18T17:30:01+07:00, amount=900000; booking=paid."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-661965befeae8d4937b2",
+              "file": "booking.spec.js",
+              "line": 171,
+              "column": 5
+            },
+            {
+              "title": "TC-PAY-004 gửi lại kết quả cho giao dịch đã xử lý không đổi trạng thái",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "Gửi fail cho SB-261018173001-7AG7V7 → 302; gửi success cho SB-261018172957-ZGDHBK → 302; sau đó booking=paid, payments={\"SB-261018173001-7AG7V7\":\"succeeded\",\"SB-261018172959-TMLP2O\":\"cancelled\",\"SB-261018172957-ZGDHBK\":\"failed\"}."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1234,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:30:02.326Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "Gửi fail cho SB-261018173001-7AG7V7 → 302; gửi success cho SB-261018172957-ZGDHBK → 302; sau đó booking=paid, payments={\"SB-261018173001-7AG7V7\":\"succeeded\",\"SB-261018172959-TMLP2O\":\"cancelled\",\"SB-261018172957-ZGDHBK\":\"failed\"}."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-ba8c56f99d49625d1659",
+              "file": "booking.spec.js",
+              "line": 181,
+              "column": 5
+            },
+            {
+              "title": "TC-PAY-005 hủy đặt lịch đã thanh toán (trước 24h) được hoàn tiền, trả chỗ",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "booking=refunded; payments=SB-261018173001-7AG7V7:refunded, SB-261018172959-TMLP2O:cancelled, SB-261018172957-ZGDHBK:failed; chỗ trống 16 → 18."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2569,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:30:03.568Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "booking=refunded; payments=SB-261018173001-7AG7V7:refunded, SB-261018172959-TMLP2O:cancelled, SB-261018172957-ZGDHBK:failed; chỗ trống 16 → 18."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-74842f372437f1bb28b9",
+              "file": "booking.spec.js",
+              "line": 194,
+              "column": 5
+            },
+            {
+              "title": "TC-BOOK-009 hủy phiếu đang giữ chỗ trả lại chỗ cho khung giờ",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 43,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "BK-BGUJ8BPC: status=cancelled, can_pay=false; chỗ trống khi giữ 17 → sau hủy 20."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3023,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:30:06.144Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 43,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "BK-BGUJ8BPC: status=cancelled, can_pay=false; chỗ trống khi giữ 17 → sau hủy 20."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-16612906ed70813d43d2",
+              "file": "booking.spec.js",
+              "line": 208,
+              "column": 5
+            }
+          ]
+        },
+        {
+          "title": "PAY – quản trị hoàn tiền",
+          "file": "booking.spec.js",
+          "line": 225,
+          "column": 15,
+          "specs": [
+            {
+              "title": "TC-PAY-006 quản trị chuyển đặt lịch paid → refunded, tạo bút toán hoàn tiền",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                        "line": 225,
+                        "column": 15
+                      }
+                    },
+                    {
+                      "type": "actual",
+                      "description": "BK-PHIQOQM1: paid → PATCH refunded 302 → refunded; payments=SB-261018173010-RV6VQA:refunded; chuyển tiếp không hợp lệ refunded→paid → 302, flash lỗi \"Không thể chuyển trạng thái đặt lịch từ \"refunded\" sang \"paid\".\"."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3397,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-18T10:30:09.176Z",
+                      "annotations": [
+                        {
+                          "type": "serial",
+                          "location": {
+                            "file": "/home/nguyen/Work_space/job/phenika/02_SourceCode/app/tests/e2e/booking.spec.js",
+                            "line": 225,
+                            "column": 15
+                          }
+                        },
+                        {
+                          "type": "actual",
+                          "description": "BK-PHIQOQM1: paid → PATCH refunded 302 → refunded; payments=SB-261018173010-RV6VQA:refunded; chuyển tiếp không hợp lệ refunded→paid → 302, flash lỗi \"Không thể chuyển trạng thái đặt lịch từ \"refunded\" sang \"paid\".\"."
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9bb7d16d706a4f421c80-9c88bdd6b60835068368",
+              "file": "booking.spec.js",
+              "line": 227,
+              "column": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-18T10:29:43.467Z",
+    "duration": 29177.163,
+    "expected": 15,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
