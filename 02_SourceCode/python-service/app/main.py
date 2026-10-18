@@ -23,6 +23,8 @@ logger = logging.getLogger("disanso.analytics")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO").upper())
 
 REINDEX_INTERVAL_SECONDS = int(os.getenv("REINDEX_INTERVAL_SECONDS", "600"))
+# Khi chỉ mục còn rỗng (DB chưa seed xong lúc khởi động) thử lại nhanh hơn
+EMPTY_RETRY_SECONDS = int(os.getenv("EMPTY_RETRY_SECONDS", "30"))
 Locale = Literal["vi", "en"]
 SubjectType = Literal["site", "artifact", "figure"]
 
@@ -66,8 +68,16 @@ async def _safe_refresh() -> None:
 
 async def _periodic_reindex() -> None:
     while True:
-        await asyncio.sleep(REINDEX_INTERVAL_SECONDS)
+        interval = REINDEX_INTERVAL_SECONDS if STATE["current"].index.size > 0 else EMPTY_RETRY_SECONDS
+        await asyncio.sleep(interval)
         await _safe_refresh()
+
+
+async def _ensure_index() -> EngineState:
+    """Chỉ mục rỗng (ví dụ seed xong sau khi dịch vụ khởi động) thì dựng lại ngay trước khi phục vụ."""
+    if STATE["current"].index.size == 0:
+        await _safe_refresh()
+    return STATE["current"]
 
 
 @asynccontextmanager
@@ -129,15 +139,17 @@ def healthz() -> dict:
 
 
 @app.post("/search", dependencies=[Depends(require_token)])
-def search(body: SearchRequest) -> dict:
+async def search(body: SearchRequest) -> dict:
     start = time.perf_counter()
-    results = STATE["current"].index.search(body.q, body.locale, body.limit, body.types)
+    state = await _ensure_index()
+    results = state.index.search(body.q, body.locale, body.limit, body.types)
     return {"engine": "tfidf", "took_ms": _ms(start), "results": results}
 
 
 @app.post("/suggest-tags", dependencies=[Depends(require_token)])
-def suggest_tags(body: SuggestRequest) -> dict:
-    return {"suggestions": STATE["current"].suggester.suggest_tags(body.text, body.locale, body.limit)}
+async def suggest_tags(body: SuggestRequest) -> dict:
+    state = await _ensure_index()
+    return {"suggestions": state.suggester.suggest_tags(body.text, body.locale, body.limit)}
 
 
 @app.get("/quality-report", dependencies=[Depends(require_token)])
