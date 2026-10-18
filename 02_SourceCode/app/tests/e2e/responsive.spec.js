@@ -53,3 +53,25 @@ for (const vp of VIEWPORTS) {
         });
     }
 }
+
+// Vòng 3 – qa_r2_2: chữ in sẵn trong ảnh bìa SVG không được chồng lên h1. Dưới 1024px h1 phải nằm hẳn dưới ảnh;
+// từ 1024px h1 phủ lên đáy ảnh nhưng phải nằm dưới dải chữ của SVG (chữ ở 40–56 % chiều cao ảnh).
+test('TC-SITE-009 hero trang chi tiết: h1 không chồng chữ trong ảnh bìa ở 375/768/1280 px', async ({ page, browserName }, ti) => {
+    const IMG = path.resolve(MATRIX_DIR, '../img');
+    const rows = [];
+    for (const vp of VIEWPORTS) {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        await page.goto('/vi/di-san/hoang-thanh-thang-long', { waitUntil: 'load' });
+        await page.waitForTimeout(600);
+        const m = await page.locator('.hero-cover__media').boundingBox();
+        const h = await page.locator('.hero-cover h1').boundingBox();
+        const textBandBottom = m.y + m.height * 0.56;
+        const ok = vp.width < 1024 ? h.y >= m.y + m.height - 1 : h.y >= textBandBottom;
+        const file = `TC-SITE-009_${browserName}_${vp.width}x${vp.height}.png`;
+        await page.screenshot({ path: path.join(IMG, file), clip: { x: 0, y: Math.max(0, m.y), width: vp.width, height: Math.min(vp.height, h.y + h.height + 40 - Math.max(0, m.y)) } });
+        if (browserName === 'chromium' && vp.width === 375) await page.screenshot({ path: path.join(IMG, 'TC-SITE-009.png') });
+        rows.push({ viewport: `${vp.width}x${vp.height}`, imgTop: Math.round(m.y), imgBottom: Math.round(m.y + m.height), h1Top: Math.round(h.y), textBandBottom: Math.round(textBandBottom), ok });
+    }
+    actual(ti, `${browserName}: ` + rows.map((r) => `${r.viewport} ảnh ${r.imgTop}–${r.imgBottom}px, h1 top ${r.h1Top}px (${r.ok ? 'không chồng' : 'CHỒNG'})`).join('; '));
+    expect(rows.every((r) => r.ok)).toBe(true);
+});

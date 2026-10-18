@@ -92,3 +92,44 @@ export async function showText(page, code, title, text) {
 
 /** Lấy ngẫu nhiên chuỗi ngắn để tạo dữ liệu kiểm thử không trùng. */
 export const rnd = () => Math.random().toString(36).slice(2, 8);
+
+/** Mật khẩu của tài khoản kiểm thử đăng ký mới (đủ chữ hoa, chữ thường, chữ số). */
+export const FRESH_PASSWORD = 'KiemThu2026';
+
+/**
+ * Vòng 3 (M6: tối đa 3 booking chưa thanh toán và 10 chỗ/ngày mỗi tài khoản): đăng ký một tài khoản member mới
+ * qua form đăng ký (POST /vi/dang-ky giống form giao diện, có CSRF). Gặp 429 (đăng ký 6 lần/phút/IP) thì chờ
+ * Retry-After rồi thử lại. Lưu storageState vào .auth/<label>.json và trả { email, password, id, file }.
+ */
+export async function registerFresh(browser, label, password = FRESH_PASSWORD) {
+    const email = `qa_${label}_${rnd()}@disanso.test`.toLowerCase();
+    // storageState rỗng: nếu không, context mới kế thừa storageState của test.use (đang đăng nhập) và POST bị guest-middleware chuyển hướng
+    const ctx = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    try {
+        for (let attempt = 0; attempt < 4; attempt++) {
+            await ctx.request.get('/vi/dang-ky');
+            const r = await ctx.request.post('/vi/dang-ky', {
+                form: { name: `QA V5 ${label}`, email, password, password_confirmation: password },
+                headers: { ...(await xsrfHeader(ctx)), Accept: 'text/html' },
+                maxRedirects: 0,
+            });
+            if (r.status() === 429) {
+                const wait = Number(r.headers()['retry-after'] || 30) + 1;
+                await new Promise((res) => setTimeout(res, wait * 1000));
+                continue;
+            }
+            const loc = r.headers()['location'] || '';
+            if (![302, 303].includes(r.status()) || loc.includes('/dang-ky')) {
+                throw new Error(`Đăng ký ${email} thất bại: ${r.status()} ${loc}`);
+            }
+            const file = authFile(label);
+            await ctx.storageState({ path: file });
+            const user = (await getPage(ctx.request, '/vi/tai-khoan')).page.props.auth.user;
+            if (user?.email !== email) throw new Error(`Đăng ký ${email}: phiên đang là ${user?.email}`);
+            return { email, password, id: user.id, file };
+        }
+        throw new Error(`Đăng ký ${email}: vẫn 429 sau 4 lần thử`);
+    } finally {
+        await ctx.close();
+    }
+}
