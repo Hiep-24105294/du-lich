@@ -53,7 +53,6 @@ const hasLinks = computed(() => props.links.length > 0);
                     <li v-for="item in links" :key="item.key">
                         <Link :href="lr(item.path)" class="hover:text-primary hover:underline">{{ t(`nav.${item.key}`) }}</Link>
                     </li>
-                    <li><a href="/api/v1/openapi.json" class="hover:text-primary hover:underline">{{ t('footer.open_api') }}</a></li>
                 </ul>
             </nav>
             <div class="text-sm" :class="{ 'md:col-span-2': !hasLinks }">
