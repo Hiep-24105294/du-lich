@@ -7,7 +7,7 @@ return [
     'academic' => [
         'course' => 'Lập trình ứng dụng web trong du lịch 2',
         'course_code' => 'CSE703073',
-        'team' => env('APP_TEAM_NAME', 'DiSanSo'),
+        'team' => env('APP_TEAM_NAME', 'Nhóm 8 – DiSanSo'),
     ],
 
     'locales' => [

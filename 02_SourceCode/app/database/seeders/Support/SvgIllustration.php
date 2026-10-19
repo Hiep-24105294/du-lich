@@ -4,6 +4,8 @@ namespace Database\Seeders\Support;
 
 /**
  * Sinh ảnh SVG minh họa (gradient theo loại đối tượng + tiêu đề) thay cho ảnh thật chưa rõ bản quyền.
+ * Chữ dùng phông sans có sẵn trên mọi hệ điều hành vì SVG tải qua <img> không dùng được web font của trang;
+ * phông serif dự phòng thiếu glyph tiếng Việt tổ hợp sẵn nên dấu bị tách ("Quâ`n thê").
  */
 class SvgIllustration
 {
@@ -24,7 +26,7 @@ class SvgIllustration
         $text = '';
         foreach ($lines as $i => $line) {
             $y = $startY + $i * 80;
-            $text .= '<text x="600" y="'.$y.'" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-size="64" font-weight="bold" fill="#ffffff">'
+            $text .= '<text x="600" y="'.$y.'" text-anchor="middle" font-family="\'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, \'Noto Sans\', \'DejaVu Sans\', sans-serif" font-size="60" font-weight="bold" fill="#ffffff">'
                 .htmlspecialchars($line, ENT_QUOTES | ENT_XML1, 'UTF-8').'</text>';
         }
         $sub = htmlspecialchars($subtitle, ENT_QUOTES | ENT_XML1, 'UTF-8');
@@ -39,7 +41,7 @@ class SvgIllustration
             .'<rect width="1200" height="800" fill="url(#'.$id.')"/>'.$deco
             .'<rect x="60" y="60" width="1080" height="680" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="3" rx="18"/>'
             .$text
-            .'<text x="600" y="690" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#ffffff" opacity="0.85">'.$sub.'</text>'
+            .'<text x="600" y="690" text-anchor="middle" font-family="\'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, \'Noto Sans\', \'DejaVu Sans\', sans-serif" font-size="30" fill="#ffffff" opacity="0.85">'.$sub.'</text>'
             .'</svg>';
     }
 

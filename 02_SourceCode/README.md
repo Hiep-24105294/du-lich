@@ -2,7 +2,7 @@
 
 Sản phẩm học thuật, phục vụ mục đích đào tạo.
 - Học phần: Lập trình ứng dụng web trong du lịch 2 (CSE703073), Đại học Phenikaa.
-- Đề tài ĐT-04, nhóm DiSanSo, lớp 20xx-2-CSE703073-01.
+- Đề tài ĐT-04, nhóm 8 (DiSanSo), lớp 20xx-2-CSE703073-01.
 - Giảng viên: TS. Nguyễn Văn Tánh.
 
 ## 1. Mô tả

@@ -55,6 +55,8 @@ if [ "$(run_as_www php artisan app:is-seeded)" != "yes" ]; then
 fi
 # 3a. Ảnh bìa thật từ Wikimedia Commons theo database/data/media_external.json (idempotent, cập nhật cả CSDL đã seed trước)
 run_as_www php artisan app:import-external-media || true
+# 3c. Vẽ lại SVG minh họa theo mẫu hiện hành (phông chữ, màu) cho CSDL đã seed từ trước
+run_as_www php artisan app:render-illustrations || true
 # 3b. Dựng lại chỉ mục tìm kiếm của analytics ngay sau seed (analytics có thể đã đánh chỉ mục khi seed còn dở).
 #     Thử tối đa 10 lần cách 3 giây vì analytics có thể lên sau; thất bại không chặn khởi động.
 reindex_analytics() {
