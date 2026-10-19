@@ -101,5 +101,13 @@ if [ -n "${PORT:-}" ] && [ "$PORT" != "80" ]; then
   echo "[entrypoint] apache listening on port ${PORT}"
 fi
 
+# 6. Bảo đảm chỉ một MPM được nạp (một số nền tảng build để sót mpm_event cạnh mpm_prefork → AH00534)
+if [ -d /etc/apache2/mods-enabled ]; then
+  a2dismod -q mpm_event mpm_worker >/dev/null 2>&1 || true
+  a2enmod -q mpm_prefork >/dev/null 2>&1 || true
+  echo "[entrypoint] apache mpm: $(ls /etc/apache2/mods-enabled | grep -i mpm | tr '\n' ' ')"
+  apache2ctl -t 2>&1 | sed 's/^/[entrypoint] configtest: /' | head -5
+fi
+
 echo "[entrypoint] starting web server"
 exec "$@"
