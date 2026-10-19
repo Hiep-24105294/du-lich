@@ -1,12 +1,5 @@
 # Ngữ cảnh build gốc kho cho Dockerfile trong 02_SourceCode/deploy (Railway nối GitHub): bỏ mọi thứ không cần build
 .git
-_workspace
-01_BaoCao
-03_Database
-04_HuongDanSuDung
-05_KiemThu
-06_Demo
-07_QuanTriDuAn
 *.zip
 02_SourceCode/app/node_modules
 02_SourceCode/app/vendor

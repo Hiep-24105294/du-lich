@@ -42,3 +42,16 @@ _workspace/_fetch_log.txt
 _workspace/_shots/
 _workspace/_items*.tsv
 _workspace/_sample_out.json
+
+# Hồ sơ nộp và tệp làm việc nội bộ: gửi riêng dưới dạng zip, không đưa lên git
+00_INFO.md
+01_BaoCao/
+03_Database/
+04_HuongDanSuDung/
+05_KiemThu/
+06_Demo/
+07_QuanTriDuAn/
+_workspace/
+
+
+scripts/
