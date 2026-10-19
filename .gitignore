@@ -38,3 +38,7 @@ Thumbs.db
 02_SourceCode/app/tests/e2e/.auth/
 .pytest_cache/
 .venv/
+_workspace/_fetch_log.txt
+_workspace/_shots/
+_workspace/_items*.tsv
+_workspace/_sample_out.json
