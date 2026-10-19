@@ -51,6 +51,8 @@ return [
         'slot_deleted' => 'Time slot removed.',
         'slot_has_bookings' => 'Cannot delete a time slot that already has bookings.',
         'media_uploaded' => 'Media uploaded.',
+
+        'media_updated' => 'Media updated.',
         'user_updated' => 'User updated.',
         'cannot_demote_self' => 'You cannot demote or deactivate yourself.',
         'quality_done' => 'Data quality check completed.',

@@ -51,6 +51,8 @@ return [
         'slot_deleted' => 'Đã xóa khung giờ.',
         'slot_has_bookings' => 'Không thể xóa khung giờ đã có đặt lịch.',
         'media_uploaded' => 'Đã tải lên tệp đa phương tiện.',
+
+        'media_updated' => 'Đã lưu thay đổi tư liệu.',
         'user_updated' => 'Đã cập nhật người dùng.',
         'cannot_demote_self' => 'Bạn không thể tự hạ quyền hoặc khóa chính mình.',
         'quality_done' => 'Đã chạy kiểm tra chất lượng dữ liệu.',

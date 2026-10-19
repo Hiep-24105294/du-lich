@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
 import FilterBar from '@/Components/FilterBar.vue';
 import Pagination from '@/Components/Pagination.vue';
@@ -51,7 +51,12 @@ const thumbIcon = (m) => ({ audio: 'volume', video: 'play', model3d: 'cube', doc
             <div class="flex flex-1 flex-col gap-2 p-3">
                 <div class="flex items-start justify-between gap-2">
                     <p class="line-clamp-2 text-sm font-medium">{{ m.caption || t('admin.media.no_caption') }}</p>
-                    <DeleteAction :url="lr(`/quan-tri/media/${m.id}`)" :name="m.caption || `#${m.id}`" />
+                    <div class="flex shrink-0 items-center gap-1">
+                        <Link v-if="m.subject?.edit_url" :href="m.subject.edit_url" class="btn btn-ghost btn-sm" :title="t('admin.media.open_subject')">
+                            <Icon name="edit" :size="16" />{{ t('common.edit') }}
+                        </Link>
+                        <DeleteAction :url="lr(`/quan-tri/media/${m.id}`)" :name="m.caption || `#${m.id}`" />
+                    </div>
                 </div>
                 <p v-if="m.subject" class="text-xs text-muted">
                     {{ te('subject_type', m.subject.type) }}:

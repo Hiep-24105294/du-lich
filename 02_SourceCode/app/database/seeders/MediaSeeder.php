@@ -18,8 +18,6 @@ use Illuminate\Support\Facades\Storage;
  */
 class MediaSeeder extends Seeder
 {
-    private const PROVENANCE = 'Ảnh minh họa sinh tự động bằng mã PHP (gradient và tiêu đề) để thay thế ảnh thật chưa xác minh bản quyền; không phải ảnh chụp hiện trạng.';
-
     public function run(): void
     {
         foreach ([HeritageSite::class => 'cover_media_id', Artifact::class => 'cover_media_id', HistoricalFigure::class => 'portrait_media_id'] as $class => $coverColumn) {
@@ -78,7 +76,7 @@ class MediaSeeder extends Seeder
                 'author' => 'Nhóm DiSanSo',
                 'license' => 'simulated',
                 'rights_holder' => 'Nhóm DiSanSo',
-                'provenance_note' => self::PROVENANCE,
+                'provenance_note' => null,
             ],
         );
         $this->caption($media, 'vi', "Ảnh minh họa {$n}: {$titleVi}");

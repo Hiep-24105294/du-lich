@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TourRouteRequest;
 use App\Http\Requests\Admin\TourSlotRequest;
+use App\Http\Resources\MediaItemResource;
 use App\Http\Resources\RouteCardResource;
 use App\Http\Resources\SlotItemResource;
 use App\Models\HeritageSite;
+use App\Models\MediaAsset;
 use App\Models\TourRoute;
 use App\Models\TourSlot;
 use App\Services\Admin\TourRouteWriter;
@@ -108,11 +110,12 @@ class TourController extends Controller
     {
         $payload = null;
         if ($route) {
-            $route->load(['translations', 'stops', 'slots' => fn ($q) => $q->where('starts_at', '>=', now()->subDays(1))]);
+            $route->load(['translations', 'stops', 'media.captions', 'slots' => fn ($q) => $q->where('starts_at', '>=', now()->subDays(1))]);
             $payload = $route->only(['id', 'slug', 'province_id', 'theme_tag_id', 'duration_minutes', 'distance_km', 'difficulty', 'price_vnd', 'default_capacity', 'status', 'created_by']) + [
                 'translations' => collect(['vi', 'en'])->mapWithKeys(fn ($l) => [$l => $route->translations->firstWhere('locale', $l)?->only(['name', 'description', 'highlights'])])->all(),
                 'stops' => $route->stops->map(fn ($s) => $s->only(['site_id', 'stop_order', 'dwell_minutes', 'note']))->values()->all(),
                 'slots' => SlotItemResource::list($route->slots),
+                'media' => MediaItemResource::list($route->media),
             ];
         }
 
@@ -124,6 +127,7 @@ class TourController extends Controller
             'enums' => [
                 'difficulties' => HeritagePresenter::enumList('difficulties', ['de', 'vua', 'kho']),
                 'statuses' => HeritagePresenter::enumList('statuses', ['draft', 'published', 'archived']),
+                'licenses' => HeritagePresenter::enumList('licenses', MediaAsset::LICENSES),
             ],
         ]);
     }

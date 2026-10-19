@@ -26,11 +26,17 @@ class MediaItemResource extends BaseResource
             'is_cover' => (bool) $this->is_cover,
             'width' => $this->width,
             'height' => $this->height,
+            // Dữ liệu cho form sửa trong quản trị (trang công khai bỏ qua)
+            'external_url' => $this->external_url,
+            'locale' => $this->locale,
+            'caption_vi' => $this->caption('vi')?->caption,
+            'caption_en' => $this->caption('en')?->caption,
+            'transcript_vi' => $this->caption('vi')?->transcript,
+            'transcript_en' => $this->caption('en')?->transcript,
         ];
 
         if ($this->media_type === 'audio') {
             $data += [
-                'locale' => $this->locale,
                 'duration_sec' => $this->duration_sec,
                 'transcript' => $caption?->transcript,
                 'mode' => $this->url ? 'file' : 'tts',
