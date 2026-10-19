@@ -11,10 +11,12 @@ onMounted(syncFromUser);
 </script>
 
 <template>
+    <!-- Nút bật/tắt: nhãn cố định "Giao diện tối", trạng thái qua aria-pressed; title mô tả hành động kế tiếp -->
     <button
         type="button"
         class="btn btn-ghost btn-icon"
-        :aria-label="theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')"
+        :aria-pressed="theme === 'dark'"
+        :aria-label="t('common.theme_dark_toggle')"
         :title="theme === 'dark' ? t('common.theme_light') : t('common.theme_dark')"
         @click="toggle"
     >

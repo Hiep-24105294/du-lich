@@ -1,4 +1,6 @@
 <script setup>
+import { SLUG_PATTERN, SLUG_RE, YEAR_MIN, YEAR_MAX } from '@/Utils/rules';
+import { useClientValidation } from '@/Composables/useClientValidation';
 import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
@@ -56,7 +58,20 @@ const sections = computed(() => [
     ...(isEdit.value ? [{ id: 'media', label: t('admin.form.section_media') }] : []),
 ]);
 
-function submit() {
+// Diễn giải bắt buộc: ô vi – độ sâu 1 (chỉ số 0 trong buildInterpretations)
+const interpLabel = (key) => () => `${t(key)} (vi, 1)`;
+const { validate } = useClientValidation(form, {
+    slug: { label: 'admin.form.slug', required: true, max: 150, pattern: { regex: SLUG_RE, message: 'slug' } },
+    figure_type: { label: 'common.type', required: true },
+    status: { label: 'common.status', required: true },
+    birth_year: { label: 'admin.figures.birth_year', number: { min: YEAR_MIN, max: YEAR_MAX, integer: true } },
+    death_year: { label: 'admin.figures.death_year', number: { min: YEAR_MIN, max: YEAR_MAX, integer: true } },
+    'interpretations.0.title': { label: interpLabel('admin.form.interp_title'), required: true, max: 255 },
+    'interpretations.0.body': { label: interpLabel('admin.form.interp_body'), required: true },
+});
+
+function submit(e) {
+    if (!validate(e)) return;
     form.transform((data) => ({ ...data, interpretations: serializeInterpretations(data.interpretations) }));
     if (isEdit.value) form.put(lr(`/quan-tri/nhan-vat/${f.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/nhan-vat'), { preserveScroll: true });
@@ -74,11 +89,11 @@ const title = computed(() => (isEdit.value ? t('admin.figures.edit_title', { nam
     <form class="space-y-6" novalidate @submit.prevent="submit">
         <FormSection id="general" :title="t('admin.form.section_general')" class="scroll-mt-20">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required />
+                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required maxlength="150" :pattern="SLUG_PATTERN" :pattern-hint="t('validation_hint.slug')" />
                 <FormField v-model="form.figure_type" type="select" :label="t('common.type')" :options="opt.types" :placeholder="t('admin.form.choose')" :error="form.errors.figure_type" required />
                 <FormField v-model="form.status" type="select" :label="t('common.status')" :options="opt.status" :error="form.errors.status" required />
-                <FormField v-model="form.birth_year" type="number" :label="t('admin.figures.birth_year')" :hint="t('admin.form.year_hint')" :error="form.errors.birth_year" />
-                <FormField v-model="form.death_year" type="number" :label="t('admin.figures.death_year')" :error="form.errors.death_year" />
+                <FormField v-model="form.birth_year" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.figures.birth_year')" :hint="t('admin.form.year_hint')" :error="form.errors.birth_year" />
+                <FormField v-model="form.death_year" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.figures.death_year')" :error="form.errors.death_year" />
                 <FormField v-model="form.period_id" type="select" :label="t('common.period')" :options="opt.periods" :placeholder="t('common.none')" :error="form.errors.period_id" />
                 <FormField v-model="form.province_id" type="select" :label="t('admin.figures.province')" :options="opt.provinces" :placeholder="t('common.none')" :error="form.errors.province_id" />
             </div>

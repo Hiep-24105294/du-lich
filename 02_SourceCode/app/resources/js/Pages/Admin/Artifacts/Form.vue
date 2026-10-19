@@ -1,4 +1,6 @@
 <script setup>
+import { SLUG_PATTERN, SLUG_RE, YEAR_MIN, YEAR_MAX } from '@/Utils/rules';
+import { useClientValidation } from '@/Composables/useClientValidation';
 import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
@@ -64,7 +66,28 @@ const sections = computed(() => [
     ...(isEdit.value ? [{ id: 'media', label: t('admin.form.section_media') }] : []),
 ]);
 
-function submit() {
+// Diễn giải bắt buộc: ô vi – độ sâu 1 (chỉ số 0 trong buildInterpretations)
+const interpLabel = (key) => () => `${t(key)} (vi, 1)`;
+const { validate } = useClientValidation(form, {
+    slug: { label: 'admin.form.slug', required: true, max: 150, pattern: { regex: SLUG_RE, message: 'slug' } },
+    site_id: { label: 'admin.artifacts.site', required: true },
+    inventory_code: { label: 'admin.artifacts.inventory_code', max: 40 },
+    artifact_type: { label: 'common.type', required: true },
+    material: { label: 'admin.artifacts.material', max: 120 },
+    status: { label: 'common.status', required: true },
+    year_from: { label: 'admin.artifacts.year_from', number: { min: YEAR_MIN, max: YEAR_MAX, integer: true } },
+    year_to: { label: 'admin.artifacts.year_to', number: { min: YEAR_MIN, max: YEAR_MAX, integer: true } },
+    height_cm: { label: 'admin.artifacts.height_cm', number: { min: 0, max: 99999 } },
+    width_cm: { label: 'admin.artifacts.width_cm', number: { min: 0, max: 99999 } },
+    depth_cm: { label: 'admin.artifacts.depth_cm', number: { min: 0, max: 99999 } },
+    weight_kg: { label: 'admin.artifacts.weight_kg', number: { min: 0, max: 99999 } },
+    model3d_url: { label: 'admin.artifacts.model3d_url', url: ['https:'], max: 255 },
+    'interpretations.0.title': { label: interpLabel('admin.form.interp_title'), required: true, max: 255 },
+    'interpretations.0.body': { label: interpLabel('admin.form.interp_body'), required: true },
+});
+
+function submit(e) {
+    if (!validate(e)) return;
     form.transform((data) => ({ ...data, interpretations: serializeInterpretations(data.interpretations) }));
     if (isEdit.value) form.put(lr(`/quan-tri/hien-vat/${a.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/hien-vat'), { preserveScroll: true });
@@ -82,20 +105,20 @@ const title = computed(() => (isEdit.value ? t('admin.artifacts.edit_title', { n
     <form class="space-y-6" novalidate @submit.prevent="submit">
         <FormSection id="general" :title="t('admin.form.section_general')" class="scroll-mt-20">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required />
+                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required maxlength="150" :pattern="SLUG_PATTERN" :pattern-hint="t('validation_hint.slug')" />
                 <FormField v-model="form.site_id" type="select" :label="t('admin.artifacts.site')" :options="opt.sites" :placeholder="t('admin.form.choose')" :error="form.errors.site_id" required />
-                <FormField v-model="form.inventory_code" :label="t('admin.artifacts.inventory_code')" :error="form.errors.inventory_code" />
+                <FormField v-model="form.inventory_code" maxlength="40" :label="t('admin.artifacts.inventory_code')" :error="form.errors.inventory_code" />
                 <FormField v-model="form.artifact_type" type="select" :label="t('common.type')" :options="opt.types" :placeholder="t('admin.form.choose')" :error="form.errors.artifact_type" required />
-                <FormField v-model="form.material" :label="t('admin.artifacts.material')" :error="form.errors.material" />
+                <FormField v-model="form.material" maxlength="120" :label="t('admin.artifacts.material')" :error="form.errors.material" />
                 <FormField v-model="form.period_id" type="select" :label="t('common.period')" :options="opt.periods" :placeholder="t('common.none')" :error="form.errors.period_id" />
-                <FormField v-model="form.year_from" type="number" :label="t('admin.artifacts.year_from')" :hint="t('admin.form.year_hint')" :error="form.errors.year_from" />
-                <FormField v-model="form.year_to" type="number" :label="t('admin.artifacts.year_to')" :error="form.errors.year_to" />
+                <FormField v-model="form.year_from" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.artifacts.year_from')" :hint="t('admin.form.year_hint')" :error="form.errors.year_from" />
+                <FormField v-model="form.year_to" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.artifacts.year_to')" :error="form.errors.year_to" />
                 <FormField v-model="form.status" type="select" :label="t('common.status')" :options="opt.status" :error="form.errors.status" required />
-                <FormField v-model="form.height_cm" type="number" step="any" min="0" :label="t('admin.artifacts.height_cm')" :error="form.errors.height_cm" />
-                <FormField v-model="form.width_cm" type="number" step="any" min="0" :label="t('admin.artifacts.width_cm')" :error="form.errors.width_cm" />
-                <FormField v-model="form.depth_cm" type="number" step="any" min="0" :label="t('admin.artifacts.depth_cm')" :error="form.errors.depth_cm" />
-                <FormField v-model="form.weight_kg" type="number" step="any" min="0" :label="t('admin.artifacts.weight_kg')" :error="form.errors.weight_kg" />
-                <FormField v-model="form.model3d_url" type="url" class="sm:col-span-2" :label="t('admin.artifacts.model3d_url')" :hint="t('admin.artifacts.model3d_hint')" :error="form.errors.model3d_url" />
+                <FormField v-model="form.height_cm" type="number" step="any" min="0" max="99999" :label="t('admin.artifacts.height_cm')" :error="form.errors.height_cm" />
+                <FormField v-model="form.width_cm" type="number" step="any" min="0" max="99999" :label="t('admin.artifacts.width_cm')" :error="form.errors.width_cm" />
+                <FormField v-model="form.depth_cm" type="number" step="any" min="0" max="99999" :label="t('admin.artifacts.depth_cm')" :error="form.errors.depth_cm" />
+                <FormField v-model="form.weight_kg" type="number" step="any" min="0" max="99999" :label="t('admin.artifacts.weight_kg')" :error="form.errors.weight_kg" />
+                <FormField v-model="form.model3d_url" type="url" maxlength="255" pattern="https://.*" class="sm:col-span-2" :label="t('admin.artifacts.model3d_url')" :hint="t('admin.artifacts.model3d_hint')" :error="form.errors.model3d_url" />
                 <div class="flex items-end pb-2 sm:col-span-2 lg:col-span-3">
                     <label class="flex items-center gap-2 text-sm font-medium">
                         <input v-model="form.is_national_treasure" type="checkbox" class="h-4 w-4 accent-[var(--ds-primary)]" />

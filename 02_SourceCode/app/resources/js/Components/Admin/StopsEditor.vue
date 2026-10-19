@@ -39,8 +39,8 @@ const e = (i, f) => props.errors[`stops.${i}.${f}`];
                 </div>
                 <div class="grid min-w-0 flex-1 gap-3 sm:grid-cols-[2fr_1fr]">
                     <FormField v-model="row.site_id" type="select" :label="t('admin.tours.stop_site')" :options="siteOptions" :placeholder="t('admin.form.choose')" :error="e(i, 'site_id')" required />
-                    <FormField v-model="row.dwell_minutes" type="number" min="0" step="5" :label="t('admin.tours.dwell_minutes')" :error="e(i, 'dwell_minutes')" />
-                    <FormField v-model="row.note" class="sm:col-span-2" :label="t('common.note')" :error="e(i, 'note')" />
+                    <FormField v-model="row.dwell_minutes" type="number" min="5" max="600" :label="t('admin.tours.dwell_minutes')" :error="e(i, 'dwell_minutes')" />
+                    <FormField v-model="row.note" class="sm:col-span-2" maxlength="255" :label="t('common.note')" :error="e(i, 'note')" />
                 </div>
                 <button type="button" class="btn btn-ghost btn-icon self-start text-danger" :aria-label="t('admin.form.remove_row')" @click="remove(i)">
                     <Icon name="trash" :size="18" />

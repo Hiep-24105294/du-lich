@@ -1,4 +1,6 @@
 <script setup>
+import { SLUG_PATTERN, SLUG_RE, YEAR_MIN, YEAR_MAX } from '@/Utils/rules';
+import { useClientValidation } from '@/Composables/useClientValidation';
 import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
@@ -74,7 +76,28 @@ const sections = computed(() => [
     ...(isEdit.value ? [{ id: 'media', label: t('admin.form.section_media') }] : []),
 ]);
 
-function submit() {
+// Diễn giải bắt buộc: ô vi – độ sâu 1 (chỉ số 0 trong buildInterpretations)
+const interpLabel = (key) => () => `${t(key)} (vi, 1)`;
+const { validate } = useClientValidation(form, {
+    slug: { label: 'admin.form.slug', required: true, max: 150, pattern: { regex: SLUG_RE, message: 'slug' } },
+    site_type: { label: 'admin.sites.site_type', required: true },
+    recognition_level: { label: 'admin.sites.recognition_level', required: true },
+    province_id: { label: 'common.province', required: true },
+    status: { label: 'common.status', required: true },
+    address: { label: 'admin.sites.address', max: 255 },
+    lat: { label: 'admin.sites.lat', required: true, number: { min: 8, max: 24 } },
+    lng: { label: 'admin.sites.lng', required: true, number: { min: 102, max: 110 } },
+    year_built: { label: 'admin.sites.year_built', number: { min: YEAR_MIN, max: YEAR_MAX, integer: true } },
+    year_recognized: { label: 'admin.sites.year_recognized', number: { min: 1900, max: YEAR_MAX, integer: true } },
+    visiting_hours: { label: 'admin.sites.visiting_hours', max: 120 },
+    ticket_price_vnd: { label: 'admin.sites.ticket_price_vnd', number: { min: 0, max: 100000000, integer: true } },
+    website: { label: 'admin.sites.website', url: true, max: 255 },
+    'interpretations.0.title': { label: interpLabel('admin.form.interp_title'), required: true, max: 255 },
+    'interpretations.0.body': { label: interpLabel('admin.form.interp_body'), required: true },
+});
+
+function submit(e) {
+    if (!validate(e)) return;
     form.transform((data) => ({ ...data, interpretations: serializeInterpretations(data.interpretations) }));
     const opts = { preserveScroll: true };
     if (isEdit.value) form.put(lr(`/quan-tri/di-san/${s.slug}`), opts);
@@ -93,20 +116,20 @@ const title = computed(() => (isEdit.value ? t('admin.sites.edit_title', { name:
     <form class="space-y-6" novalidate @submit.prevent="submit">
         <FormSection id="general" :title="t('admin.form.section_general')" class="scroll-mt-20">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required />
+                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required maxlength="150" :pattern="SLUG_PATTERN" :pattern-hint="t('validation_hint.slug')" />
                 <FormField v-model="form.site_type" type="select" :label="t('admin.sites.site_type')" :options="opt.types" :placeholder="t('admin.form.choose')" :error="form.errors.site_type" required />
                 <FormField v-model="form.recognition_level" type="select" :label="t('admin.sites.recognition_level')" :options="opt.levels" :error="form.errors.recognition_level" required />
                 <FormField v-model="form.province_id" type="select" :label="t('common.province')" :options="opt.provinces" :placeholder="t('admin.form.choose')" :error="form.errors.province_id" required />
                 <FormField v-model="form.period_id" type="select" :label="t('common.period')" :options="opt.periods" :placeholder="t('common.none')" :error="form.errors.period_id" />
                 <FormField v-model="form.status" type="select" :label="t('common.status')" :options="opt.status" :error="form.errors.status" required />
-                <FormField v-model="form.address" class="sm:col-span-2 lg:col-span-3" :label="t('admin.sites.address')" :error="form.errors.address" />
-                <FormField v-model="form.lat" type="number" step="any" min="-90" max="90" :label="t('admin.sites.lat')" :error="form.errors.lat" required />
-                <FormField v-model="form.lng" type="number" step="any" min="-180" max="180" :label="t('admin.sites.lng')" :error="form.errors.lng" required />
-                <FormField v-model="form.year_built" type="number" :label="t('admin.sites.year_built')" :hint="t('admin.form.year_hint')" :error="form.errors.year_built" />
-                <FormField v-model="form.year_recognized" type="number" :label="t('admin.sites.year_recognized')" :error="form.errors.year_recognized" />
-                <FormField v-model="form.visiting_hours" :label="t('admin.sites.visiting_hours')" :error="form.errors.visiting_hours" />
-                <FormField v-model="form.ticket_price_vnd" type="number" min="0" step="1000" :label="t('admin.sites.ticket_price_vnd')" :error="form.errors.ticket_price_vnd" />
-                <FormField v-model="form.website" type="url" class="sm:col-span-2 lg:col-span-3" :label="t('admin.sites.website')" :error="form.errors.website" />
+                <FormField v-model="form.address" class="sm:col-span-2 lg:col-span-3" maxlength="255" :label="t('admin.sites.address')" :error="form.errors.address" />
+                <FormField v-model="form.lat" type="number" step="any" min="8" max="24" :label="t('admin.sites.lat')" :error="form.errors.lat" required />
+                <FormField v-model="form.lng" type="number" step="any" min="102" max="110" :label="t('admin.sites.lng')" :error="form.errors.lng" required />
+                <FormField v-model="form.year_built" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.sites.year_built')" :hint="t('admin.form.year_hint')" :error="form.errors.year_built" />
+                <FormField v-model="form.year_recognized" type="number" min="1900" :max="YEAR_MAX" :label="t('admin.sites.year_recognized')" :error="form.errors.year_recognized" />
+                <FormField v-model="form.visiting_hours" maxlength="120" :label="t('admin.sites.visiting_hours')" :error="form.errors.visiting_hours" />
+                <FormField v-model="form.ticket_price_vnd" type="number" min="0" max="100000000" :label="t('admin.sites.ticket_price_vnd')" :error="form.errors.ticket_price_vnd" />
+                <FormField v-model="form.website" type="url" maxlength="255" class="sm:col-span-2 lg:col-span-3" :label="t('admin.sites.website')" :error="form.errors.website" />
             </div>
         </FormSection>
 

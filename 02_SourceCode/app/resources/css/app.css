@@ -146,6 +146,20 @@
         outline-offset: 2px;
         border-radius: 4px;
     }
+    /* Chân trang tĩnh do máy chủ render (partials/academic-footer): hiện khi JS chưa chạy/tắt, ẩn khi Vue đã mount */
+    .ssr-academic-footer {
+        border-top: 1px solid var(--ds-border);
+        padding: 1rem;
+        text-align: center;
+        font-size: 0.8125rem;
+        color: var(--ds-muted);
+    }
+    .ssr-academic-footer p {
+        margin: 0.25rem 0;
+    }
+    #app[data-v-app] ~ .ssr-academic-footer {
+        display: none;
+    }
     ::selection {
         background: var(--ds-accent-soft);
         color: var(--ds-text);

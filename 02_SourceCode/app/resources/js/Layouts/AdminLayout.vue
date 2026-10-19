@@ -4,6 +4,7 @@ import { Link, usePage, router } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
 import Icon from '@/Components/Icon.vue';
 import FlashToast from '@/Components/FlashToast.vue';
+import AppFooter from '@/Components/AppFooter.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import LocaleSwitch from '@/Components/LocaleSwitch.vue';
 import { useT } from '@/Composables/useT';
@@ -112,6 +113,7 @@ router.on('navigate', () => (sidebarOpen.value = false));
             <main id="main" class="min-w-0 flex-1 p-4 md:p-6" tabindex="-1">
                 <slot />
             </main>
+            <AppFooter compact />
         </div>
     </div>
 </template>

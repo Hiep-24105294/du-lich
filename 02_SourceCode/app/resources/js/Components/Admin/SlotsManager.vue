@@ -73,10 +73,10 @@ function submit() {
             <h3 class="mb-3 font-body text-base font-bold">{{ t('admin.tours.add_slot') }}</h3>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <FormField v-model="form.starts_at" type="datetime-local" class="lg:col-span-2" :label="t('admin.tours.starts_at')" :error="form.errors.starts_at" required />
-                <FormField v-model="form.duration_minutes" type="number" min="15" step="15" :label="t('admin.tours.duration_minutes')" :error="form.errors.duration_minutes" />
-                <FormField v-model="form.capacity" type="number" min="1" :label="t('admin.tours.capacity')" :error="form.errors.capacity" required />
+                <FormField v-model="form.duration_minutes" type="number" min="30" max="1440" :label="t('admin.tours.duration_minutes')" :error="form.errors.duration_minutes" />
+                <FormField v-model="form.capacity" type="number" min="1" max="500" :label="t('admin.tours.capacity')" :error="form.errors.capacity" required />
                 <FormField v-model="form.language" type="select" :label="t('admin.tours.language')" :options="languageOptions" :error="form.errors.language" required />
-                <FormField v-model="form.guide_name" class="sm:col-span-2 lg:col-span-4" :label="t('admin.tours.guide')" :error="form.errors.guide_name" />
+                <FormField v-model="form.guide_name" maxlength="120" class="sm:col-span-2 lg:col-span-4" :label="t('admin.tours.guide')" :error="form.errors.guide_name" />
                 <div class="flex items-end">
                     <button type="submit" class="btn btn-primary w-full" :disabled="form.processing"><Icon name="plus" :size="18" />{{ t('admin.tours.add_slot') }}</button>
                 </div>

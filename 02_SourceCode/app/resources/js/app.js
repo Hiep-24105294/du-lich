@@ -36,6 +36,8 @@ createInertiaApp({
             .use(plugin)
             .use(i18nPlugin)
             .mount(el);
+        // Gỡ chân trang tĩnh phía máy chủ (partials/academic-footer) để không hiển thị trùng với AppFooter
+        document.getElementById('static-footer')?.remove();
         // Nạp font tự host khi rảnh, sau khi nội dung đầu tiên đã vẽ (hàm định nghĩa trong app.blade.php)
         const whenIdle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, FONT_FALLBACK_DELAY_MS));
         whenIdle(() => window.disansoLoadFonts?.());

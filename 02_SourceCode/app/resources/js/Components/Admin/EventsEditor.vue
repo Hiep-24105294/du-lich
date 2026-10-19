@@ -1,4 +1,5 @@
 <script setup>
+import { YEAR_MIN, YEAR_MAX } from '@/Utils/rules';
 import FormField from '@/Components/FormField.vue';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
@@ -33,15 +34,15 @@ const importance = [1, 2, 3].map((n) => ({ value: n, label: String(n) }));
             </legend>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
                 <FormField v-model="row.event_type" class="lg:col-span-2" type="select" :label="t('timeline.event_type')" :options="typeOptions" :error="e(i, 'event_type')" required />
-                <FormField v-model="row.event_year" type="number" :label="t('admin.form.year')" :hint="t('admin.form.year_hint')" :error="e(i, 'event_year')" required />
+                <FormField v-model="row.event_year" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.form.year')" :hint="t('admin.form.year_hint')" :error="e(i, 'event_year')" required />
                 <FormField v-model="row.event_month" type="number" min="1" max="12" :label="t('admin.form.month')" :error="e(i, 'event_month')" />
                 <FormField v-model="row.event_day" type="number" min="1" max="31" :label="t('admin.form.day')" :error="e(i, 'event_day')" />
-                <FormField v-model="row.end_year" type="number" :label="t('admin.form.end_year')" :error="e(i, 'end_year')" />
+                <FormField v-model="row.end_year" type="number" :min="YEAR_MIN" :max="YEAR_MAX" :label="t('admin.form.end_year')" :error="e(i, 'end_year')" />
                 <FormField v-model="row.importance" type="select" :label="t('admin.form.importance')" :options="importance" :error="e(i, 'importance')" />
-                <FormField v-model="row.title_vi" class="sm:col-span-2 lg:col-span-5" :label="t('admin.form.title_vi')" :error="e(i, 'title_vi')" required />
-                <FormField v-model="row.title_en" class="sm:col-span-2 lg:col-span-6" :label="t('admin.form.title_en')" :error="e(i, 'title_en')" required />
-                <FormField v-model="row.description_vi" class="sm:col-span-2 lg:col-span-3" type="textarea" :rows="2" :label="t('admin.form.description_vi')" :error="e(i, 'description_vi')" />
-                <FormField v-model="row.description_en" class="sm:col-span-2 lg:col-span-3" type="textarea" :rows="2" :label="t('admin.form.description_en')" :error="e(i, 'description_en')" />
+                <FormField v-model="row.title_vi" class="sm:col-span-2 lg:col-span-5" :label="t('admin.form.title_vi')" :error="e(i, 'title_vi')" required maxlength="255" />
+                <FormField v-model="row.title_en" class="sm:col-span-2 lg:col-span-6" :label="t('admin.form.title_en')" :error="e(i, 'title_en')" maxlength="255" />
+                <FormField v-model="row.description_vi" class="sm:col-span-2 lg:col-span-3" type="textarea" :rows="2" maxlength="5000" :label="t('admin.form.description_vi')" :error="e(i, 'description_vi')" />
+                <FormField v-model="row.description_en" class="sm:col-span-2 lg:col-span-3" type="textarea" :rows="2" maxlength="5000" :label="t('admin.form.description_en')" :error="e(i, 'description_en')" />
             </div>
         </fieldset>
         <button type="button" class="btn btn-sm" @click="add"><Icon name="plus" :size="16" />{{ t('admin.form.add_event') }}</button>

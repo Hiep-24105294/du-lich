@@ -1,4 +1,6 @@
 <script setup>
+import { SLUG_PATTERN, SLUG_RE } from '@/Utils/rules';
+import { useClientValidation } from '@/Composables/useClientValidation';
 import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import PageHeader from '@/Components/PageHeader.vue';
@@ -42,7 +44,17 @@ const parentOptions = computed(() =>
         .map((x) => ({ value: x.id, label: x.name_vi || x.name })),
 );
 
-function submit() {
+const { validate } = useClientValidation(form, {
+    slug: { label: 'admin.form.slug', required: true, max: 120, pattern: { regex: SLUG_RE, message: 'slug' } },
+    tag_group: { label: 'admin.tags.group', required: true },
+    name_vi: { label: 'admin.tags.name_vi', required: true, max: 120 },
+    name_en: { label: 'admin.tags.name_en', required: true, max: 120 },
+    description_vi: { label: 'admin.form.description_vi', max: 500 },
+    description_en: { label: 'admin.form.description_en', max: 500 },
+});
+
+function submit(e) {
+    if (!validate(e)) return;
     if (isEdit.value) form.put(lr(`/quan-tri/the/${g.slug}`), { preserveScroll: true });
     else form.post(lr('/quan-tri/the'), { preserveScroll: true });
 }
@@ -57,13 +69,13 @@ const title = computed(() => (isEdit.value ? t('admin.tags.edit_title', { name: 
     <form class="max-w-4xl space-y-6" novalidate @submit.prevent="submit">
         <FormSection :title="t('admin.form.section_general')">
             <div class="grid gap-4 sm:grid-cols-2">
-                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required />
+                <FormField v-model="form.slug" :label="t('admin.form.slug')" :hint="t('admin.form.slug_hint')" :error="form.errors.slug" required maxlength="120" :pattern="SLUG_PATTERN" :pattern-hint="t('validation_hint.slug')" />
                 <FormField v-model="form.tag_group" type="select" :label="t('admin.tags.group')" :options="groupOptions" :error="form.errors.tag_group" required />
                 <FormField v-model="form.parent_id" type="select" class="sm:col-span-2" :label="t('admin.tags.parent')" :options="parentOptions" :placeholder="t('common.none')" :error="form.errors.parent_id" />
-                <FormField v-model="form.name_vi" :label="t('admin.tags.name_vi')" :error="form.errors.name_vi" required />
-                <FormField v-model="form.name_en" :label="t('admin.tags.name_en')" :error="form.errors.name_en" required />
-                <FormField v-model="form.description_vi" type="textarea" :rows="3" :label="t('admin.form.description_vi')" :error="form.errors.description_vi" />
-                <FormField v-model="form.description_en" type="textarea" :rows="3" :label="t('admin.form.description_en')" :error="form.errors.description_en" />
+                <FormField v-model="form.name_vi" maxlength="120" :label="t('admin.tags.name_vi')" :error="form.errors.name_vi" required />
+                <FormField v-model="form.name_en" maxlength="120" :label="t('admin.tags.name_en')" :error="form.errors.name_en" required />
+                <FormField v-model="form.description_vi" type="textarea" maxlength="500" :rows="3" :label="t('admin.form.description_vi')" :error="form.errors.description_vi" />
+                <FormField v-model="form.description_en" type="textarea" maxlength="500" :rows="3" :label="t('admin.form.description_en')" :error="form.errors.description_en" />
             </div>
         </FormSection>
         <FormActions :cancel-href="lr('/quan-tri/the')" :processing="form.processing" :has-errors="form.hasErrors" />

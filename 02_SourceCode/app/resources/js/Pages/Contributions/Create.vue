@@ -7,6 +7,7 @@ import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import PageMeta from '@/Components/Public/PageMeta.vue';
+import { useClientValidation } from '@/Composables/useClientValidation';
 
 const props = defineProps({
     types: { type: Array, default: () => [] },
@@ -60,8 +61,15 @@ function clearFile() {
     if (fileInput.value) fileInput.value.value = '';
 }
 
-function submit() {
-    if (fileError.value) return;
+const { validate } = useClientValidation(form, {
+    contribution_type: { label: 'contribution.type', required: true },
+    locale: { label: 'contribution.locale', required: true },
+    title: { label: 'contribution.title', required: true, min: 5, max: 255 },
+    body: { label: 'contribution.body', required: true, min: 20, max: 20000 },
+});
+
+function submit(e) {
+    if (!validate(e) || fileError.value) return;
     form.transform((data) => {
         const out = { ...data };
         if (!out.subject_type) {
@@ -86,8 +94,8 @@ function submit() {
         <form class="card grid gap-4 p-5 sm:grid-cols-2 md:p-6" novalidate @submit.prevent="submit">
             <FormField v-model="form.contribution_type" :label="t('contribution.type')" type="select" :options="typeOptions" required :error="form.errors.contribution_type" />
             <FormField v-model="form.locale" :label="t('contribution.locale')" type="select" :options="localeOptions" required :error="form.errors.locale" />
-            <FormField v-model="form.title" class="sm:col-span-2" :label="t('contribution.title')" required :error="form.errors.title" />
-            <FormField v-model="form.body" class="sm:col-span-2" :label="t('contribution.body')" type="textarea" :rows="8" required :hint="t('contribution.body_hint')" :error="form.errors.body" />
+            <FormField v-model="form.title" class="sm:col-span-2" :label="t('contribution.title')" required minlength="5" maxlength="255" :error="form.errors.title" />
+            <FormField v-model="form.body" class="sm:col-span-2" :label="t('contribution.body')" type="textarea" :rows="8" required minlength="20" maxlength="20000" :hint="t('contribution.body_hint')" :error="form.errors.body" />
 
             <FormField class="sm:col-span-2" :label="`${t('contribution.attachment')} (${t('common.optional')})`" :hint="t('contribution.attachment_hint')" :error="fileError || form.errors.attachment">
                 <template #default="{ id, invalid, describedby }">

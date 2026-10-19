@@ -19,6 +19,12 @@ const props = defineProps({
     min: { type: [String, Number], default: undefined },
     max: { type: [String, Number], default: undefined },
     step: { type: [String, Number], default: undefined },
+    // Ràng buộc HTML5 phía máy khách, khớp FormRequest (máy chủ vẫn kiểm lại)
+    minlength: { type: [String, Number], default: undefined },
+    maxlength: { type: [String, Number], default: undefined },
+    pattern: { type: String, default: undefined },
+    patternHint: { type: String, default: undefined },
+    inputmode: { type: String, default: undefined },
     disabled: { type: Boolean, default: false },
 });
 const model = defineModel({ type: [String, Number, null], default: '' });
@@ -43,6 +49,8 @@ const describedby = computed(() =>
                 class="input"
                 :rows="rows"
                 :required="required"
+                :minlength="minlength"
+                :maxlength="maxlength"
                 :placeholder="placeholder"
                 :disabled="disabled"
                 :aria-invalid="!!errorText"
@@ -73,6 +81,11 @@ const describedby = computed(() =>
                 :min="min"
                 :max="max"
                 :step="step"
+                :minlength="minlength"
+                :maxlength="maxlength"
+                :pattern="pattern"
+                :title="patternHint"
+                :inputmode="inputmode"
                 :disabled="disabled"
                 :aria-invalid="!!errorText"
                 :aria-describedby="describedby"

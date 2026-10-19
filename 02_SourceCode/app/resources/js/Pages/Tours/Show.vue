@@ -1,4 +1,5 @@
 <script setup>
+import { PHONE_PATTERN, PHONE_RE, stripPhone } from '@/Utils/rules';
 import { ref, computed } from 'vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
@@ -12,11 +13,14 @@ import { useT } from '@/Composables/useT';
 import { useFormat } from '@/Composables/useFormat';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 import PageMeta from '@/Components/Public/PageMeta.vue';
+import { useClientValidation } from '@/Composables/useClientValidation';
 
 const props = defineProps({
     route: { type: Object, required: true },
     holdMinutes: { type: Number, default: 15 },
     canBook: { type: Boolean, default: false },
+    // Số giờ trước giờ khởi hành còn được hủy miễn phí (config disanso.booking.cancel_before_hours)
+    cancelBeforeHours: { type: Number, default: 24 },
 });
 const page = usePage();
 const { t, te } = useT();
@@ -63,8 +67,17 @@ const form = useForm({
 const maxQty = computed(() => Math.min(MAX_QTY, selected.value?.available ?? MAX_QTY));
 const total = computed(() => (Number(form.quantity) || 0) * (props.route.price_vnd || 0));
 
-function submit() {
-    if (!selected.value) return;
+// Số khách chỉ kiểm biên nghiệp vụ 1..MAX_QTY; số chỗ còn lại do máy chủ kiểm trong transaction (báo "Chỉ còn N chỗ")
+const { validate } = useClientValidation(form, {
+    quantity: { label: 'booking.quantity', required: true, number: { min: 1, max: MAX_QTY, integer: true } },
+    contact_name: { label: 'booking.contact_name', required: true, min: 2, max: 120 },
+    contact_phone: { label: 'booking.contact_phone', required: true, pattern: { regex: PHONE_RE, message: 'phone', normalize: stripPhone } },
+    contact_email: { label: 'booking.contact_email', required: true, email: true, max: 190 },
+    note: { label: 'common.note', max: 500 },
+});
+
+function submit(e) {
+    if (!selected.value || !validate(e)) return;
     form.post(lr(`/dat-lich/${selected.value.id}`), { preserveScroll: true });
 }
 </script>
@@ -170,15 +183,16 @@ function submit() {
                     <p v-else-if="!selected" class="mt-3 text-sm text-muted">{{ t('tours.choose_slot') }}</p>
                     <form v-else class="mt-3 space-y-3" novalidate @submit.prevent="submit">
                         <FormField v-model.number="form.quantity" :label="t('booking.quantity')" type="number" :min="1" :max="maxQty" required :error="form.errors.quantity" :hint="t('booking.quantity_hint', { n: maxQty })" />
-                        <FormField v-model="form.contact_name" :label="t('booking.contact_name')" required autocomplete="name" :error="form.errors.contact_name" />
-                        <FormField v-model="form.contact_phone" :label="t('booking.contact_phone')" type="tel" required autocomplete="tel" :error="form.errors.contact_phone" />
-                        <FormField v-model="form.contact_email" :label="t('booking.contact_email')" type="email" required autocomplete="email" :error="form.errors.contact_email" />
-                        <FormField v-model="form.note" :label="`${t('common.note')} (${t('common.optional')})`" type="textarea" :rows="3" :error="form.errors.note" />
+                        <FormField v-model="form.contact_name" :label="t('booking.contact_name')" required minlength="2" maxlength="120" autocomplete="name" :error="form.errors.contact_name" />
+                        <FormField v-model="form.contact_phone" :label="t('booking.contact_phone')" type="tel" required :pattern="PHONE_PATTERN" :pattern-hint="t('validation_hint.phone')" maxlength="16" autocomplete="tel" :error="form.errors.contact_phone" />
+                        <FormField v-model="form.contact_email" :label="t('booking.contact_email')" type="email" required maxlength="190" autocomplete="email" :error="form.errors.contact_email" />
+                        <FormField v-model="form.note" :label="`${t('common.note')} (${t('common.optional')})`" type="textarea" :rows="3" maxlength="500" :error="form.errors.note" />
                         <div class="flex items-center justify-between border-t border-border pt-3">
                             <span class="text-sm text-muted">{{ t('booking.estimated_total') }}</span>
                             <strong class="font-display text-xl text-primary">{{ money(total) }}</strong>
                         </div>
                         <p class="text-xs text-muted">{{ t('tours.hold_note', { n: holdMinutes }) }}</p>
+                        <p class="flex gap-1.5 text-xs text-muted"><Icon name="info" :size="14" class="mt-0.5 shrink-0" />{{ t('tours.cancel_policy', { n: cancelBeforeHours }) }}</p>
                         <button type="submit" class="btn btn-primary w-full" :disabled="form.processing">
                             <Icon name="ticket" :size="18" />{{ form.processing ? t('common.saving') : t('tours.hold_seats') }}
                         </button>

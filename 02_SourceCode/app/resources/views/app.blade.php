@@ -64,5 +64,6 @@
 </head>
 <body class="antialiased">
     @inertia
+    @include('partials.academic-footer')
 </body>
 </html>

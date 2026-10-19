@@ -1,17 +1,15 @@
 <script setup>
-import { computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
 import FlashToast from '@/Components/FlashToast.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import LocaleSwitch from '@/Components/LocaleSwitch.vue';
+import AppFooter from '@/Components/AppFooter.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
 
-const page = usePage();
 const { t } = useT();
 const lr = useLocaleRoute();
-const app = computed(() => page.props.app || {});
 </script>
 
 <template>
@@ -29,9 +27,6 @@ const app = computed(() => page.props.app || {});
                 <slot />
             </div>
         </main>
-        <footer class="py-6 text-center text-xs text-muted">
-            {{ app.course || 'Lập trình ứng dụng web trong du lịch 2' }} · {{ app.courseCode || 'CSE703073' }} · {{ app.team || 'DiSanSo' }}<br />
-            {{ app.notice || t('footer.academic_notice') }}
-        </footer>
+        <AppFooter compact />
     </div>
 </template>

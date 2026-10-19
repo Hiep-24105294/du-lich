@@ -62,12 +62,13 @@ const missingRequired = computed(() => (tabFilled('vi', 1) ? [] : ['vi']));
         </div>
 
         <div v-if="current" :key="index" class="grid gap-4">
-            <FormField v-model="current.title" :label="t('admin.form.interp_title')" :error="err('title')" :required="depth === 1 && locale === 'vi'" />
-            <FormField v-model="current.summary" type="textarea" :rows="2" :label="t('admin.form.interp_summary')" :error="err('summary')" />
+            <FormField v-model="current.title" maxlength="255" :label="t('admin.form.interp_title')" :error="err('title')" :required="depth === 1 && locale === 'vi'" />
+            <FormField v-model="current.summary" type="textarea" :rows="2" maxlength="2000" :label="t('admin.form.interp_summary')" :error="err('summary')" />
             <FormField
                 v-model="current.body"
                 type="textarea"
                 :rows="12"
+                maxlength="100000"
                 :label="t('admin.form.interp_body')"
                 :hint="t('admin.form.interp_body_hint')"
                 :error="err('body')"
