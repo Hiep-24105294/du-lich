@@ -6,6 +6,7 @@ use App\Models\Artifact;
 use App\Models\HeritageSite;
 use App\Models\HistoricalFigure;
 use App\Models\MediaAsset;
+use App\Models\TourRoute;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -45,8 +46,50 @@ class ImportExternalMedia extends Command
             $done++;
         }
         $this->info("Đã gắn {$done}/".count($items).' ảnh Wikimedia Commons làm ảnh bìa.');
+        $this->info('Đã gắn '.$this->coverRoutes().' ảnh bìa tuyến tham quan từ điểm dừng đầu tiên có ảnh thật.');
 
         return self::SUCCESS;
+    }
+
+    /** Tuyến tham quan không có mục Wikimedia riêng: dùng lại ảnh bìa thật của điểm dừng đầu tiên có ảnh (giữ nguyên nguồn, giấy phép). */
+    private function coverRoutes(): int
+    {
+        $done = 0;
+        TourRoute::query()->with(['stops' => fn ($q) => $q->orderBy('stop_order'), 'stops.site'])->chunkById(50, function ($routes) use (&$done) {
+            foreach ($routes as $route) {
+                $source = null;
+                foreach ($route->stops as $stop) {
+                    $site = $stop->site;
+                    $cover = $site?->cover_media_id ? MediaAsset::find($site->cover_media_id) : null;
+                    if ($cover && $cover->external_url) {
+                        $source = $cover;
+                        break;
+                    }
+                }
+                if (! $source) {
+                    continue;
+                }
+                DB::transaction(function () use ($route, $source) {
+                    $media = MediaAsset::updateOrCreate(
+                        ['subject_type' => 'route', 'subject_id' => $route->id, 'media_type' => 'image', 'external_url' => $source->external_url],
+                        $source->only(['mime', 'width', 'height', 'source_name', 'source_url', 'author', 'license', 'rights_holder', 'captured_at'])
+                            + ['path' => null, 'sort_order' => 0, 'is_cover' => true,
+                                'provenance_note' => trim(($source->provenance_note ?? '').' Dùng lại làm ảnh bìa tuyến tham quan (điểm dừng đầu tiên có ảnh thật).')]
+                    );
+                    foreach (['vi', 'en'] as $locale) {
+                        $caption = $source->caption($locale)?->caption;
+                        if ($caption) {
+                            $media->captions()->updateOrCreate(['locale' => $locale], ['caption' => $caption]);
+                        }
+                    }
+                    MediaAsset::query()->where('subject_type', 'route')->where('subject_id', $route->id)->whereKeyNot($media->id)->update(['is_cover' => false]);
+                    $route->forceFill(['cover_media_id' => $media->id])->saveQuietly();
+                });
+                $done++;
+            }
+        });
+
+        return $done;
     }
 
     private function attach(Model $subject, array $item, string $fetched): void

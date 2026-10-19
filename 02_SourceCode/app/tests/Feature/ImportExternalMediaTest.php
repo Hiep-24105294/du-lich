@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\HeritageSite;
 use App\Models\HistoricalFigure;
 use App\Models\MediaAsset;
+use App\Models\TourRoute;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -55,5 +56,26 @@ class ImportExternalMediaTest extends TestCase
     {
         $this->artisan('app:import-external-media', ['--file' => 'database/data/khong-co.json'])->assertSuccessful();
         $this->assertSame(0, MediaAsset::count());
+    }
+
+    public function test_route_cover_reuses_first_stop_real_image(): void
+    {
+        $site = HeritageSite::factory()->create(['slug' => 'van-mieu']);
+        $route = TourRoute::factory()->create();
+        $route->stops()->create(['site_id' => $site->id, 'stop_order' => 1, 'dwell_minutes' => 60]);
+        $file = $this->jsonFile([[
+            'type' => 'site', 'slug' => 'van-mieu', 'title' => 'Văn Miếu', 'file' => 'VM.jpg', 'url' => 'https://upload.wikimedia.org/x/VM.jpg',
+            'source_url' => 'https://commons.wikimedia.org/wiki/File:VM.jpg', 'author' => 'B', 'license' => 'cc_by', 'license_name' => 'CC BY 4.0',
+        ]]);
+
+        $this->artisan('app:import-external-media', ['--file' => $file])->assertSuccessful();
+        $this->artisan('app:import-external-media', ['--file' => $file])->assertSuccessful();
+
+        $cover = MediaAsset::where('subject_type', 'route')->where('subject_id', $route->id)->get();
+        $this->assertCount(1, $cover);
+        $this->assertSame('https://upload.wikimedia.org/x/VM.jpg', $cover->first()->external_url);
+        $this->assertSame('cc_by', $cover->first()->license);
+        $this->assertSame($cover->first()->id, $route->fresh()->cover_media_id);
+        $this->assertSame('Văn Miếu', $cover->first()->caption('vi')?->caption);
     }
 }
