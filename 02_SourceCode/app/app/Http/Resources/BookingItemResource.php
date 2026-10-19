@@ -3,10 +3,13 @@
 namespace App\Http\Resources;
 
 use App\Services\BookingService;
+use App\Support\UrlToken;
 use Illuminate\Http\Request;
 
 class BookingItemResource extends BaseResource
 {
+    public const URL_TOKEN_PURPOSE = 'booking';
+
     public static function eager(): array
     {
         return ['slot.route' => fn ($q) => $q->withTrashed(), 'slot.route.translations', 'payments'];
@@ -54,6 +57,8 @@ class BookingItemResource extends BaseResource
             'can_pay' => $service->canPay($this->resource),
             'can_cancel' => $service->canCancel($this->resource),
             'url' => localized_route('bookings.show', ['booking' => $this->code]),
+            // Liên kết tra cứu dùng trong email/trang xác nhận: id mã hóa, không lộ id tự tăng
+            'lookup_url' => localized_route('bookings.lookup', ['token' => UrlToken::encode(self::URL_TOKEN_PURPOSE, (int) $this->id)]),
         ];
 
         if ($this->relationLoaded('user') && $request->user()?->id !== $this->user_id) {

@@ -81,7 +81,7 @@ class AnalyticsClient
             $response = $method === 'get' ? $client->get($path, $body) : $client->post($path, $body);
 
             if (! $response->successful()) {
-                Log::warning('Analytics service error', ['path' => $path, 'status' => $response->status()]);
+                Log::error('Analytics service error', ['path' => $path, 'status' => $response->status()]);
 
                 return null;
             }
@@ -89,7 +89,7 @@ class AnalyticsClient
 
             return is_array($json) ? $json : null;
         } catch (Throwable $e) {
-            Log::warning('Analytics service unavailable', ['path' => $path, 'error' => $e->getMessage()]);
+            Log::error('Analytics service unavailable', ['path' => $path, 'error' => $e->getMessage()]);
 
             return null;
         }

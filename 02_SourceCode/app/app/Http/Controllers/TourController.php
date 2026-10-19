@@ -56,6 +56,7 @@ class TourController extends Controller
             'route' => RouteDetailResource::one($route),
             'holdMinutes' => $bookings->holdMinutes(),
             'canBook' => $request->user() !== null && (bool) $request->user()->is_active,
+            'cancelBeforeHours' => (int) config('disanso.booking.cancel_before_hours', 24),
         ]);
     }
 }

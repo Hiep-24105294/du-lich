@@ -3,6 +3,13 @@
 return [
     'version' => env('APP_VERSION', '1.0.0'),
 
+    // Thông tin chân trang bắt buộc theo đề thi (Mục 2.4): dùng chung cho Vue, trang Blade và trang lỗi
+    'academic' => [
+        'course' => 'Lập trình ứng dụng web trong du lịch 2',
+        'course_code' => 'CSE703073',
+        'team' => env('APP_TEAM_NAME', 'DiSanSo'),
+    ],
+
     'locales' => [
         'vi' => 'Tiếng Việt',
         'en' => 'English',

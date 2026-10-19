@@ -10,6 +10,7 @@ use App\Services\AnalyticsClient;
 use App\Services\AuditLogger;
 use App\Services\SearchService;
 use App\Support\UploadPolicy;
+use App\Support\UrlToken;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -70,8 +71,12 @@ class ContributionController extends Controller
     }
 
     /** Tải tệp đính kèm: chỉ chủ đóng góp hoặc staff (Policy view); phục vụ inline, không cho trình duyệt đoán kiểu. */
-    public function attachment(Request $request, Contribution $contribution): StreamedResponse
+    public function attachment(Request $request, string $token): StreamedResponse
     {
+        // Chữ ký đã được middleware signed kiểm; token giải mã lỗi/sai mục đích → 404 (không tiết lộ id có tồn tại hay không)
+        $id = UrlToken::decode(ContributionItemResource::URL_TOKEN_PURPOSE, $token);
+        abort_if($id === null, 404);
+        $contribution = Contribution::query()->findOrFail($id);
         $this->authorize('view', $contribution);
         $path = (string) $contribution->attachment_path;
         // Bản cũ từng lưu trên disk public; bản mới nằm ở disk private (storage/app/private)

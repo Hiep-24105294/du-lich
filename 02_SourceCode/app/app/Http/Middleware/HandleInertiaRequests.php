@@ -28,9 +28,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'app' => fn () => [
                 'name' => 'DiSanSo',
-                'course' => 'Lập trình ứng dụng web trong du lịch 2',
-                'courseCode' => 'CSE703073',
-                'team' => 'DiSanSo',
+                'course' => config('disanso.academic.course'),
+                'courseCode' => config('disanso.academic.course_code'),
+                'team' => config('disanso.academic.team'),
                 'notice' => __('messages.app.notice'),
                 'analyticsUp' => app(AnalyticsClient::class)->isUp(),
             ],

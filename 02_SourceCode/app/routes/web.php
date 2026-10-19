@@ -66,9 +66,14 @@ Route::prefix('{locale}')->where(['locale' => 'vi|en'])->middleware('locale')->g
         Route::get('dong-gop/moi', [ContributionController::class, 'create'])->name('contributions.create');
         Route::post('dong-gop', [ContributionController::class, 'store'])->middleware('throttle:10,1')->name('contributions.store');
         Route::get('dong-gop/{contribution}', [ContributionController::class, 'show'])->whereNumber('contribution')->name('contributions.show');
-        Route::get('dong-gop/{contribution}/tep-dinh-kem', [ContributionController::class, 'attachment'])->whereNumber('contribution')->name('contributions.attachment');
+        // Tệp đính kèm: id mã hóa (UrlToken) + chữ ký 60 phút (signed:relative phủ path + query, không phụ thuộc host/cổng) + Policy view
+        Route::get('dong-gop/tep-dinh-kem/{token}', [ContributionController::class, 'attachment'])
+            ->where('token', '[A-Za-z0-9_\-]+')->middleware('signed:relative')->name('contributions.attachment');
 
         Route::post('dat-lich/{slot}', [BookingController::class, 'store'])->whereNumber('slot')->middleware('throttle:20,1')->name('bookings.store');
+        // Tra cứu đặt lịch bằng id mã hóa (liên kết gửi email/trang xác nhận); token hỏng → 404, không phải chủ → 403
+        Route::get('dat-lich/tra-cuu/{token}', [BookingController::class, 'lookup'])
+            ->where('token', '[A-Za-z0-9_\-]+')->name('bookings.lookup');
         Route::get('dat-lich/{booking:code}', [BookingController::class, 'show'])->name('bookings.show');
         Route::post('dat-lich/{booking:code}/thanh-toan', [BookingController::class, 'pay'])->name('bookings.pay');
         Route::post('dat-lich/{booking:code}/huy', [BookingController::class, 'cancel'])->name('bookings.cancel');
@@ -119,6 +124,7 @@ Route::prefix('{locale}')->where(['locale' => 'vi|en'])->middleware('locale')->g
 
             Route::get('media', [Admin\MediaController::class, 'index'])->name('media.index');
             Route::post('media', [Admin\MediaController::class, 'store'])->name('media.store');
+            Route::match(['put', 'patch'], 'media/{media}', [Admin\MediaController::class, 'update'])->whereNumber('media')->name('media.update');
             Route::delete('media/{media}', [Admin\MediaController::class, 'destroy'])->whereNumber('media')->name('media.destroy');
 
             Route::get('chat-luong-du-lieu', [Admin\QualityController::class, 'index'])->name('quality.index');

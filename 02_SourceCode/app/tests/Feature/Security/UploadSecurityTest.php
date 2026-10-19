@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Http\Resources\ContributionItemResource;
 use App\Models\Contribution;
 use App\Models\HeritageSite;
 use App\Models\MediaAsset;
@@ -137,7 +138,7 @@ class UploadSecurityTest extends TestCase
         $c = Contribution::firstOrFail();
         Storage::disk('local')->assertExists($c->attachment_path);
         Storage::disk('public')->assertMissing($c->attachment_path);
-        $url = "/vi/dong-gop/{$c->id}/tep-dinh-kem";
+        $url = ContributionItemResource::signedAttachmentUrl($c->id);
 
         $this->actingAs($owner)->get($url)->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->actingAs($this->manager())->get($url)->assertOk();

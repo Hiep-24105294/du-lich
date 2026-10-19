@@ -214,7 +214,9 @@ test.describe.serial('CONTRIB vòng 3 – tệp đính kèm riêng tư', () => {
         st.id = c.location.split('/').pop();
         const { page: show } = await getPage(page.request, `/vi/dong-gop/${st.id}`);
         const url = show.props.contribution.attachment_url;
-        const path_ = new URL(url, baseURL).pathname;
+        const parsed = new URL(url, baseURL);
+        // URL có id mã hóa + chữ ký (Mục 6.6): giữ nguyên query expires/signature khi gọi lại
+        const path_ = parsed.pathname + parsed.search;
         const owner = await page.request.get(path_);
         const oh = owner.headers();
         const other = await browser.newContext({ storageState: authFile('member2') });
@@ -233,7 +235,9 @@ test.describe.serial('CONTRIB vòng 3 – tệp đính kèm riêng tư', () => {
         await shot(page, 'TC-CONTRIB-005');
         const text = `Đóng góp #${st.id} → ${c.status}; attachment_url = ${url}\nChủ (user@) GET → ${owner.status()} ${oh['content-type']}; nosniff=${oh['x-content-type-options']}; CSP=${oh['content-security-policy']}; cache-control=${oh['cache-control']}\nThành viên khác (member1@) → ${o}\nKhách → ${g.status()} ${g.headers()['location'] ?? ''}\nManager → ${mres}`;
         actual(ti, text.replace(/\n/g, '; '));
-        expect(path_).toBe(`/vi/dong-gop/${st.id}/tep-dinh-kem`);
+        expect(parsed.pathname).toMatch(/^\/vi\/dong-gop\/tep-dinh-kem\/[A-Za-z0-9_-]+$/);
+        expect(parsed.pathname).not.toContain(`/${st.id}/`);
+        expect(parsed.searchParams.get('signature')).toBeTruthy();
         expect(owner.status()).toBe(200);
         expect(oh['content-type']).toContain('image/png');
         expect(oh['x-content-type-options']).toBe('nosniff');

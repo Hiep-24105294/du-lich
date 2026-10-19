@@ -9,14 +9,18 @@ use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Services\AccessDeniedLogger;
 use App\Services\Payment\PaymentException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -79,6 +83,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 return back()->withInput($request->only('email'))
                     ->withErrors(['email' => __('auth.throttle', ['seconds' => $seconds])]);
+            }
+
+            return null;
+        });
+
+        // Policy/FormRequest từ chối (AuthorizationException → AccessDeniedHttpException) hoặc chữ ký URL sai/hết hạn:
+        // ghi cảnh báo + audit access.denied, trả null để các bước dựng phản hồi bên dưới vẫn chạy
+        $exceptions->render(function (AccessDeniedHttpException|InvalidSignatureException $e, Request $request) {
+            $reason = $e instanceof InvalidSignatureException ? 'signature' : 'policy';
+            if ($reason === 'signature' || $e->getPrevious() instanceof AuthorizationException) {
+                app(AccessDeniedLogger::class)->record($request, $reason);
             }
 
             return null;

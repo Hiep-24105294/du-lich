@@ -10,6 +10,7 @@ use App\Models\TourSlot;
 use App\Services\BookingService;
 use App\Services\Payment\PaymentGateway;
 use App\Services\PaymentService;
+use App\Support\UrlToken;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,15 @@ class BookingController extends Controller
 
         return redirect(localized_route('bookings.show', ['booking' => $booking->code]))
             ->with('success', __('messages.booking.held', ['minutes' => $this->bookings->holdMinutes()]));
+    }
+
+    /** Tra cứu bằng id mã hóa (UrlToken): token hỏng/sai mục đích → 404; Policy view vẫn áp dụng. */
+    public function lookup(Request $request, string $token): Response
+    {
+        $id = UrlToken::decode(BookingItemResource::URL_TOKEN_PURPOSE, $token);
+        abort_if($id === null, 404);
+
+        return $this->show($request, Booking::query()->findOrFail($id));
     }
 
     public function show(Request $request, Booking $booking): Response
