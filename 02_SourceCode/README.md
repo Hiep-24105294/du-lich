@@ -28,7 +28,7 @@ Dữ liệu hạt giống: 56 di sản, 62 hiện vật, 43 nhân vật, 453 b�
 ```
 ┌──────────────────────────── Trình duyệt ────────────────────────────┐
 │ Vue 3.5 + Inertia 2 · Tailwind 4 (2 theme) · Leaflet · Chart.js      │
-│ model-viewer (CDN) · Web Speech API (TTS)                            │
+│ model-viewer (npm) · Web Speech API (TTS)                            │
 └───────────────┬──────────────────────────────────────────────────────┘
                 │ HTTP(S) · cookie phiên HttpOnly + header X-XSRF-TOKEN
                 ▼
@@ -52,9 +52,14 @@ Kiểu kiến trúc: đơn khối mô-đun ba tầng (trình bày, nghiệp vụ
 
 ## 3. Cấu trúc thư mục
 
+Cấu trúc tham chiếu trong đề thi gồm `backend/`, `frontend/`, `python-service/`, `docker/` và `docker-compose.yml`. Dự án ánh xạ như sau: `app/` gộp cả backend (Laravel) và frontend (Vue trong `app/resources/js`) vì dùng Inertia, frontend được render qua controller Laravel nên không tách thành ứng dụng riêng; cấu hình Docker nằm ở `app/docker/` và `python-service/Dockerfile`, còn `docker-compose.yml` mang tên chuẩn mới của Compose v2 là `compose.yaml`.
+
 ```
 02_SourceCode/
+├── chay.bat, dung.bat           # Windows: khởi động / dừng bằng một lệnh
+├── chay.sh, dung.sh             # macOS/Linux: tương tự
 ├── compose.yaml                 # 3 dịch vụ: db, analytics, app
+├── deploy/                      # mẫu biến môi trường Railway (web, analytics); render.yaml ở gốc kho
 ├── .env.example                 # mẫu biến môi trường (giá trị mô phỏng)
 ├── app/                         # Laravel 12 + Inertia + Vue
 │   ├── app/Http/{Controllers,Middleware,Requests,Resources}
@@ -69,12 +74,14 @@ Kiểu kiến trúc: đơn khối mô-đun ba tầng (trình bày, nghiệp vụ
 │   ├── resources/openapi/openapi.json            # đặc tả OpenAPI 3.1
 │   ├── lang/{vi,en}.json        # chuỗi giao diện
 │   ├── routes/{web,api,console}.php
-│   ├── tests/Feature/           # PHPUnit (15 tệp, 127 ca)
+│   ├── tests/Feature/           # PHPUnit (27 tệp, 194 ca)
 │   ├── tests/e2e/               # Playwright
-│   └── docker/{Dockerfile,entrypoint.sh,php.ini}
+│   ├── docker/{Dockerfile,entrypoint.sh,php.ini}
+│   └── railway.json             # cấu hình dịch vụ web trên Railway
 └── python-service/              # FastAPI
     ├── app/{main,db,text,vectorize,search,tags,quality,stats}.py
     ├── kiem_dinh_du_lieu.py     # CLI kiểm định chất lượng dữ liệu
+    ├── run.py, railway.json     # khởi chạy uvicorn dual-stack IPv4/IPv6 theo PORT; cấu hình Railway
     ├── requirements.txt, requirements-dev.txt
     └── tests/                   # pytest (56 ca)
 ```
@@ -91,6 +98,8 @@ Sao chép `.env.example` thành `.env`, đặt cùng thư mục với `compose.y
 | `APP_URL` | URL gốc | `http://localhost:8080` |
 | `APP_KEY` | Khóa mã hóa phiên/cookie; để trống thì entrypoint tự sinh và lưu vào volume | (trống) |
 | `LOG_LEVEL` | Mức nhật ký | `info` |
+| `LOG_STACK` | Kênh nhật ký trong stack; `daily` tách tệp theo ngày `storage/logs/laravel-YYYY-MM-DD.log` | `daily` |
+| `LOG_DAILY_DAYS` | Số ngày giữ tệp nhật ký (tệp cũ hơn tự xóa) | `14` |
 | `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Tài khoản MySQL ứng dụng | `disanso`, `disanso`, `disanso_secret` |
 | `DB_ROOT_PASSWORD` | Mật khẩu root MySQL (dùng để tạo CSDL kiểm thử) | `root_secret` |
 | `APP_FORWARD_PORT`, `ANALYTICS_FORWARD_PORT`, `DB_FORWARD_PORT` | Cổng ánh xạ ra máy chủ | `8080`, `8001`, `3307` |
@@ -99,9 +108,24 @@ Sao chép `.env.example` thành `.env`, đặt cùng thư mục với `compose.y
 | `SEED_DEMO_PASSWORD` | Mật khẩu tài khoản mẫu khi seed | `DiSan@2026` |
 | `SESSION_SECURE_COOKIE` | Chỉ gửi cookie qua HTTPS | `false` (đặt `true` khi go-live) |
 
-`compose.yaml` cố định thêm các biến: `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PAYMENT_GATEWAY=sandbox`, `BOOKING_HOLD_MINUTES=10`, `TRUSTED_PROXIES=*`, `ANALYTICS_URL=http://analytics:8001`.
+`compose.yaml` cố định thêm các biến: `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PAYMENT_GATEWAY=sandbox`, `BOOKING_HOLD_MINUTES=10`, `TRUSTED_PROXIES` (mặc định rỗng, chỉ đặt `*` khi chạy sau proxy của PaaS), `ANALYTICS_URL=http://analytics:8001`.
 
-## 5. Chạy hệ thống
+## 5. Yêu cầu môi trường và chạy hệ thống
+
+### 5.1. Yêu cầu môi trường
+
+| Cách chạy | Phần mềm cần có |
+| --- | --- |
+| Docker (khuyến nghị) | Docker Engine ≥ 24 (hoặc Docker Desktop trên Windows/macOS) kèm Docker Compose v2 là đủ; mọi thành phần khác nằm trong image. RAM trống ≥ 4 GB, đĩa trống ≥ 5 GB |
+| Không Docker (Mục 6) | PHP 8.3 với các phần mở rộng `pdo_mysql`, `mbstring`, `intl`, `gd`, `zip`; Composer 2; Node.js 20; Python 3.12; MySQL 8.0 |
+
+Đã thử nghiệm trên: Ubuntu 22.04 (máy phát triển, Docker). Windows/macOS: [CẬP NHẬT].
+
+### 5.2. Chạy bằng Docker
+
+**Cách nhanh (một lệnh):** Windows nhấn đúp `chay.bat` (hoặc gõ `.\chay.bat` trong PowerShell); macOS/Linux chạy `./chay.sh`. Script kiểm tra Docker, tự tạo `.env` từ `.env.example` nếu chưa có, dựng và chạy 3 container, chờ `/healthz` trả về OK rồi mở trình duyệt và in tài khoản mẫu. Dừng bằng `dung.bat` / `./dung.sh`.
+
+**Cách thủ công:**
 
 ```bash
 cd 02_SourceCode
@@ -118,7 +142,37 @@ docker compose ps
 - Dừng hệ thống: `docker compose down`. Xóa sạch dữ liệu: `docker compose down -v`.
 - Lệnh Artisan: `docker compose exec -u www-data app php artisan <lệnh>`. Ví dụ nạp lại dữ liệu: `migrate:fresh --seed --force`.
 
-## 6. Kiểm thử
+## 6. Cài đặt thủ công không Docker
+
+> **Lưu ý:** cách này **chưa được kiểm chứng** trên máy không có Docker; nhóm chỉ chạy thử hệ thống bằng Docker Compose (Ubuntu 22.04). Các lệnh dưới đây suy ra từ cấu hình dự án, dùng khi máy chấm không cài được Docker.
+
+1. Tạo CSDL MySQL 8.0 rỗng `disanso` (utf8mb4_unicode_ci) và một tài khoản có toàn quyền trên CSDL đó.
+2. Ứng dụng web (thư mục `app/`):
+   ```bash
+   cd app
+   composer install
+   cp .env.example .env            # Windows: copy .env.example .env
+   # Sửa .env: DB_CONNECTION=mysql, DB_HOST=127.0.0.1, DB_PORT=3306, DB_DATABASE=disanso,
+   #           DB_USERNAME, DB_PASSWORD; ANALYTICS_URL=http://127.0.0.1:8001; ANALYTICS_TOKEN;
+   #           PAYMENT_SANDBOX_SECRET; SEED_DEMO_PASSWORD
+   php artisan key:generate
+   php artisan migrate --seed
+   php artisan storage:link
+   npm ci && npm run build
+   php artisan serve               # http://127.0.0.1:8000
+   ```
+3. Dịch vụ Python (thư mục `python-service/`, terminal khác):
+   ```bash
+   cd python-service
+   python3.12 -m venv .venv && . .venv/bin/activate     # Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   # đặt biến môi trường DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+   # và ANALYTICS_TOKEN trùng giá trị trong app/.env
+   uvicorn app.main:app --port 8001
+   ```
+4. Nếu dịch vụ Python không chạy, ứng dụng web vẫn hoạt động và tìm kiếm tự chuyển sang FULLTEXT MySQL. Lịch nền (giải phóng giữ chỗ, sao lưu, đồng bộ lượt xem) cần thêm `php artisan schedule:work` ở một terminal riêng.
+
+## 7. Kiểm thử
 
 Máy phát triển không cần cài PHP, mọi lệnh PHP chạy qua Docker. Các lệnh dưới đây chạy từ `02_SourceCode`, khi hệ thống đang chạy.
 
@@ -130,7 +184,7 @@ docker run --rm -u $(id -u):$(id -g) -v "$PWD/app":/app -w /app composer:2 insta
 docker run --rm -u $(id -u):$(id -g) --network 02_sourcecode_default \
   -v "$PWD/app":/var/www/html -w /var/www/html -e HOME=/tmp \
   --entrypoint php 02_sourcecode-app artisan test
-#   Kết quả 18/10/2026: 126 passed, 1 skipped (thiếu pcntl)
+#   Kết quả 18/10/2026 (lượt r3, 05_KiemThu/unit/phpunit_r3_18102026.txt): 208 passed, 1 skipped (thiếu pcntl)
 
 # pytest (chạy từ thư mục python-service)
 cd python-service
@@ -158,9 +212,9 @@ docker run --rm -u $(id -u):$(id -g) -v "$PWD/app":/app -w /app composer:2 audit
 (cd app && npm audit)
 ```
 
-Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm trong `../05_KiemThu`. Danh mục ca kiểm thử nằm trong sheet CHECKLIST_KIEMTHU của `../07_QuanTriDuAn/CSE703073_QuanTriDuAn_KiemThu.xlsx`.
+Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm trong `../05_KiemThu`. Vòng hồi quy 18/10/2026: 118 ca, 115 Đạt, 3 Không đạt (`../05_KiemThu/BaoCao_KiemThu.md`). Danh mục ca kiểm thử nằm trong sheet CHECKLIST_KIEMTHU của `../07_QuanTriDuAn/CSE703073_QuanTriDuAn_KiemThu.xlsx`.
 
-## 7. Vận hành
+## 8. Vận hành
 
 - **Sao lưu:** chạy tự động khi container khởi động và lúc 02:00 hằng ngày, giữ 7 bản trong volume `app_storage` (`storage/app/backups`). Chạy tay: `docker compose exec -u www-data app php artisan app:backup-db`.
 - **Nhật ký:**
@@ -169,7 +223,7 @@ Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm tron
   - nghiệp vụ: bảng `audit_logs`, xem tại `/vi/quan-tri/nhat-ky`.
 - Hướng dẫn chi tiết, kèm go-live lên Railway/Render: `../04_HuongDanSuDung/HuongDan_CaiDat_QuanTri.md`.
 
-## 8. Thành viên
+## 9. Thành viên
 
 | Họ tên | MSSV | Vai trò |
 | --- | --- | --- |
@@ -178,7 +232,7 @@ Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm tron
 | <Họ tên 3> | <MSSV3> | V3 Phát triển máy chủ |
 | <Họ tên 4> | <MSSV4> | V4 Phát triển giao diện; V5 Kiểm thử và triển khai |
 
-## 9. Giấy phép
+## 10. Giấy phép
 
 - **Mã nguồn do nhóm viết:** sản phẩm học thuật, chỉ phục vụ mục đích đào tạo trong học phần CSE703073 [CẬP NHẬT: ghi giấy phép mở nếu nhóm quyết định công bố, ví dụ MIT].
 - **Dữ liệu `database/data/*.json`:** biên soạn từ nguồn công khai, có ghi nguồn trong từng bản ghi. Ảnh và âm thanh hạt giống là tư liệu mô phỏng (giấy phép `simulated`).
