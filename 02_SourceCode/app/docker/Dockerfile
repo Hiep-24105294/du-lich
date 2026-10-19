@@ -42,6 +42,6 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
-HEALTHCHECK --interval=30s --timeout=5s --start-period=90s CMD curl -fsS http://localhost/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s CMD curl -fsS "http://localhost:${PORT:-80}/healthz" || exit 1
 ENTRYPOINT ["entrypoint"]
 CMD ["apache2-foreground"]
