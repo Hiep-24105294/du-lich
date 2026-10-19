@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
@@ -22,6 +23,9 @@ class DatabaseSeeder extends Seeder
             MediaSeeder::class,
             DemoActivitySeeder::class,
         ]);
+
+        // Ảnh thật từ Wikimedia Commons (database/data/media_external.json) làm ảnh bìa, SVG minh họa giữ làm ảnh phụ.
+        Artisan::call('app:import-external-media');
 
         // Đồng bộ số lần sử dụng thẻ từ bảng taggables.
         DB::table('tags')->update([

@@ -53,6 +53,8 @@ if [ "$(run_as_www php artisan app:is-seeded)" != "yes" ]; then
   echo "[entrypoint] seeding sample heritage data ..."
   run_as_www php artisan db:seed --force
 fi
+# 3a. Ảnh bìa thật từ Wikimedia Commons theo database/data/media_external.json (idempotent, cập nhật cả CSDL đã seed trước)
+run_as_www php artisan app:import-external-media || true
 # 3b. Dựng lại chỉ mục tìm kiếm của analytics ngay sau seed (analytics có thể đã đánh chỉ mục khi seed còn dở).
 #     Thử tối đa 10 lần cách 3 giây vì analytics có thể lên sau; thất bại không chặn khởi động.
 reindex_analytics() {
