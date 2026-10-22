@@ -37,6 +37,11 @@ return [
         'cancel_before_hours' => 24,
     ],
 
+    // Bản đồ nền: google (tile Google Maps, mặc định theo yêu cầu giảng viên) hoặc osm (OpenStreetMap, dữ liệu mở)
+    'map' => [
+        'provider' => env('MAP_PROVIDER', 'google'),
+    ],
+
     'seed_demo_password' => env('SEED_DEMO_PASSWORD', 'DiSan@2026'),
 
     'quality_cache_minutes' => 10,

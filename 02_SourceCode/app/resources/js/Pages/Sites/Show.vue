@@ -18,6 +18,7 @@ import InfoList from '@/Components/Public/InfoList.vue';
 import JsonLd from '@/Components/Public/JsonLd.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import { useMapProvider } from '@/Composables/useMapProvider';
 import { useFormat } from '@/Composables/useFormat';
 import PageMeta from '@/Components/Public/PageMeta.vue';
 
@@ -51,9 +52,8 @@ const point = computed(() =>
         ? [{ lat: props.site.lat, lng: props.site.lng, title: props.site.title, subtitle: props.site.province?.name }]
         : [],
 );
-const directions = computed(() =>
-    point.value.length ? `https://www.openstreetmap.org/directions?to=${props.site.lat}%2C${props.site.lng}` : null,
-);
+const { directionsUrl } = useMapProvider();
+const directions = computed(() => (point.value.length ? directionsUrl(props.site.lat, props.site.lng) : null));
 </script>
 
 <template>

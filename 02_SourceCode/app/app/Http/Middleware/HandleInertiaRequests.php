@@ -34,8 +34,17 @@ class HandleInertiaRequests extends Middleware
                 'notice' => __('messages.app.notice'),
                 'analyticsUp' => app(AnalyticsClient::class)->isUp(),
             ],
+            'map' => fn () => ['provider' => self::mapProvider()],
             'currentUrlOtherLocale' => fn () => self::otherLocaleUrl($request),
         ]);
+    }
+
+    /** Nhà cung cấp bản đồ nền; giá trị lạ trong env quy về google để frontend không phải xử lý. */
+    public static function mapProvider(): string
+    {
+        $provider = strtolower((string) config('disanso.map.provider', 'google'));
+
+        return in_array($provider, ['google', 'osm'], true) ? $provider : 'google';
     }
 
     private function sharedUser(Request $request): ?array

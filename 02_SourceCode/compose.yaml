@@ -70,6 +70,7 @@ services:
       PAYMENT_GATEWAY: sandbox
       PAYMENT_SANDBOX_SECRET: ${PAYMENT_SANDBOX_SECRET:-}   # rỗng = entrypoint tự sinh và lưu trong volume
       BOOKING_HOLD_MINUTES: 10
+      MAP_PROVIDER: ${MAP_PROVIDER:-google}   # bản đồ nền: google | osm
       SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-DiSan@2026}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}   # đặt "*" chỉ khi chạy sau proxy của PaaS (Railway/Render)
     ports:

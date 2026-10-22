@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
 import { useT } from '@/Composables/useT';
 import { useLocaleRoute } from '@/Composables/useLocaleRoute';
+import { useMapProvider } from '@/Composables/useMapProvider';
 
 /**
  * Chân trang dùng chung, bắt buộc trên mọi trang (Mục 2.4 đề thi): tên học phần, mã học phần,
@@ -17,6 +18,7 @@ const props = defineProps({
 const page = usePage();
 const { t } = useT();
 const lr = useLocaleRoute();
+const { creditKey } = useMapProvider();
 
 // Giá trị dự phòng chỉ dùng khi shared prop `app` chưa có (ví dụ trang lỗi Inertia)
 const app = computed(() => ({
@@ -66,7 +68,7 @@ const hasLinks = computed(() => props.links.length > 0);
             </div>
         </div>
         <div class="border-t border-border">
-            <p class="container-page py-4 text-xs text-muted">© 2026 {{ app.name }} · {{ t('footer.map_credit') }}</p>
+            <p class="container-page py-4 text-xs text-muted">© 2026 {{ app.name }} · {{ t(creditKey) }}</p>
         </div>
     </footer>
 </template>

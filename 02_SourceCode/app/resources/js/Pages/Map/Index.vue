@@ -9,6 +9,7 @@ import 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Icon from '@/Components/Icon.vue';
 import { useT } from '@/Composables/useT';
+import { useMapProvider } from '@/Composables/useMapProvider';
 import { useFormat } from '@/Composables/useFormat';
 import { enumOptions } from '@/Utils/options';
 import PageMeta from '@/Components/Public/PageMeta.vue';
@@ -22,6 +23,7 @@ const props = defineProps({
 });
 const { t, te } = useT();
 const { number } = useFormat();
+const { preconnect } = useMapProvider();
 const mapRef = ref(null);
 
 const SITE_TYPES = ['di_tich', 'danh_thang', 'di_san_phi_vat_the', 'bao_tang', 'lang_nghe'];
@@ -43,8 +45,8 @@ const focus = (p) => {
 
 <template>
     <PageMeta :title="t('map.title')" fallback-key="map.description">
-        <!-- Tile OSM là phần tử LCP của trang: mở kết nối sớm -->
-        <link head-key="preconnect-osm" rel="preconnect" href="https://tile.openstreetmap.org" />
+        <!-- Tile bản đồ nền là phần tử LCP của trang: mở kết nối sớm tới máy chủ tile đang dùng -->
+        <link head-key="preconnect-tiles" rel="preconnect" :href="preconnect" />
     </PageMeta>
     <div class="container-page py-8">
         <PageHeader :title="t('map.title')" :eyebrow="t('map.eyebrow')" :description="t('map.description')" />

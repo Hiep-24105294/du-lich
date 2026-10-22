@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, shallowRef } from 'vue';
 import { useT } from '@/Composables/useT';
+import { useMapProvider } from '@/Composables/useMapProvider';
 
 // Leaflet (JS + CSS) nạp động khi bản đồ sắp vào khung nhìn, không nằm trong bundle đầu vào
 let L = null;
@@ -12,7 +13,7 @@ async function loadLeaflet() {
 }
 
 /**
- * Bản đồ Leaflet + tile OSM. Nhận `points` [{lat,lng,title,url,cover,subtitle}]
+ * Bản đồ Leaflet, nền Google Maps hoặc OSM theo shared prop `map.provider`. Nhận `points` [{lat,lng,title,url,cover,subtitle}]
  * hoặc `geojson` FeatureCollection (Point). Gom cụm đơn giản theo lưới pixel khi zoom nhỏ.
  */
 const props = defineProps({
@@ -25,6 +26,7 @@ const props = defineProps({
     label: { type: String, default: '' },
 });
 const { t } = useT();
+const { tileLayer } = useMapProvider();
 
 const el = ref(null);
 const map = shallowRef(null);
@@ -126,11 +128,7 @@ let viewObs = null;
 
 function createMap() {
     map.value = L.map(el.value, { scrollWheelZoom: false, zoomControl: true }).setView(props.center, props.zoom);
-    // Một máy chủ tile duy nhất (khuyến nghị của OSM) để preconnect có tác dụng
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map.value);
+    L.tileLayer(tileLayer.value.url, tileLayer.value.options).addTo(map.value);
     layer.value = L.layerGroup().addTo(map.value);
     map.value.on('zoomend', render);
     // Bấm vào bản đồ mới bật cuộn chuột, tránh "kẹt" khi cuộn trang

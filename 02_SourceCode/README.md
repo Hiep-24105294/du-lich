@@ -14,7 +14,7 @@ DiSanSo tách **hồ sơ** (di sản, hiện vật, nhân vật lịch sử) kh�
 Các chức năng chính:
 - thư viện media có siêu dữ liệu nguồn gốc và giấy phép;
 - thuyết minh âm thanh (tệp MP3 hoặc TTS của trình duyệt);
-- bản đồ Leaflet, dòng thời gian tương tác;
+- bản đồ Leaflet nền Google Maps (chuyển được sang OpenStreetMap), dòng thời gian tương tác;
 - tìm kiếm ngữ nghĩa theo thẻ bằng TF-IDF, có dự phòng FULLTEXT;
 - tuyến tham quan có đặt lịch giữ chỗ 10 phút và cổng thanh toán sandbox;
 - đóng góp cộng đồng có kiểm duyệt;
@@ -107,6 +107,7 @@ Sao chép `.env.example` thành `.env`, đặt cùng thư mục với `compose.y
 | `PAYMENT_SANDBOX_SECRET` | Khóa HMAC-SHA256 của cổng sandbox | `sandbox-secret-change-me` |
 | `SEED_DEMO_PASSWORD` | Mật khẩu tài khoản mẫu khi seed | `DiSan@2026` |
 | `SESSION_SECURE_COOKIE` | Chỉ gửi cookie qua HTTPS | `false` (đặt `true` khi go-live) |
+| `MAP_PROVIDER` | Bản đồ nền: `google` (tile Google Maps) hoặc `osm` (OpenStreetMap) | `google` |
 
 `compose.yaml` cố định thêm các biến: `SESSION_DRIVER=database`, `CACHE_STORE=database`, `PAYMENT_GATEWAY=sandbox`, `BOOKING_HOLD_MINUTES=10`, `TRUSTED_PROXIES` (mặc định rỗng, chỉ đặt `*` khi chạy sau proxy của PaaS), `ANALYTICS_URL=http://analytics:8001`.
 
@@ -236,4 +237,4 @@ Kết quả kiểm thử, ảnh minh chứng và báo cáo Lighthouse nằm tron
 
 - **Mã nguồn do nhóm viết:** sản phẩm học thuật, chỉ phục vụ mục đích đào tạo trong học phần CSE703073 [CẬP NHẬT: ghi giấy phép mở nếu nhóm quyết định công bố, ví dụ MIT].
 - **Dữ liệu `database/data/*.json`:** biên soạn từ nguồn công khai, có ghi nguồn trong từng bản ghi. Ảnh và âm thanh hạt giống là tư liệu mô phỏng (giấy phép `simulated`).
-- **Thư viện bên thứ ba:** giữ giấy phép gốc (MIT, BSD, Apache-2.0, GPL-2.0 cho MySQL, OFL cho phông chữ, ODbL cho dữ liệu OpenStreetMap). Danh mục đầy đủ ở `../00_INFO.md`, Mục 10.
+- **Thư viện bên thứ ba:** giữ giấy phép gốc (MIT, BSD, Apache-2.0, GPL-2.0 cho MySQL, OFL cho phông chữ, ODbL cho dữ liệu OpenStreetMap, điều khoản Google Maps cho tile bản đồ nền). Danh mục đầy đủ ở `../00_INFO.md`, Mục 10.
