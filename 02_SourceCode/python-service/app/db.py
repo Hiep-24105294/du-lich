@@ -76,11 +76,24 @@ def database_url() -> URL:
     )
 
 
+def ssl_connect_args(env: dict[str, str] | None = None) -> dict:
+    """Tham số TLS cho PyMySQL theo biến môi trường.
+
+    DB_SSL=true bật TLS (MySQL đám mây như Aiven bắt buộc); DB_SSL_CA trỏ tới tệp CA để xác thực
+    máy chủ. Không có CA thì PyMySQL vẫn mã hóa nhưng không xác thực chứng chỉ.
+    """
+    env = os.environ if env is None else env
+    if env.get("DB_SSL", "false").strip().lower() not in {"1", "true", "yes"}:
+        return {}
+    ca = env.get("DB_SSL_CA", "").strip()
+    return {"ssl": {"ca": ca} if ca else {"ssl_mode": "REQUIRED"}}
+
+
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     return create_engine(
         database_url(), pool_pre_ping=True, pool_recycle=1800,
-        connect_args={"connect_timeout": 5},
+        connect_args={"connect_timeout": 5, **ssl_connect_args()},
     )
 
 

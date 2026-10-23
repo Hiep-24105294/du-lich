@@ -36,7 +36,7 @@ DB_HOST=127.0.0.1 DB_PORT=3307 DB_PASSWORD=disanso_secret ANALYTICS_TOKEN=dev-an
   uvicorn app.main:app --port 8001
 ```
 
-Biến môi trường: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `ANALYTICS_TOKEN` (bắt buộc; thiếu thì mọi endpoint có bảo vệ trả 401), tùy chọn `REINDEX_INTERVAL_SECONDS` (mặc định 600), `LOG_LEVEL`.
+Biến môi trường: `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `ANALYTICS_TOKEN` (bắt buộc; thiếu thì mọi endpoint có bảo vệ trả 401), tùy chọn `REINDEX_INTERVAL_SECONDS` (mặc định 600), `LOG_LEVEL`, `DB_SSL=true` khi MySQL bắt buộc TLS (Aiven...) và `DB_SSL_CA` trỏ tới tệp CA để xác thực máy chủ.
 
 Nếu MySQL chưa sẵn sàng khi khởi động, dịch vụ vẫn chạy với chỉ mục rỗng (`/healthz` báo `index_size = 0`) và tự thử lại sau mỗi chu kỳ reindex; `/reindex` có thể gọi tay ngay khi seed xong.
 

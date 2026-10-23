@@ -17,6 +17,12 @@ run_as_www() {
 mkdir -p storage/logs storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 
+# 0. Render cấp URL công khai qua RENDER_EXTERNAL_URL; dùng làm APP_URL khi chưa đặt
+if [ -z "${APP_URL:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then
+  export APP_URL="$RENDER_EXTERNAL_URL"
+  echo "[entrypoint] APP_URL=$APP_URL (từ RENDER_EXTERNAL_URL)"
+fi
+
 # 1. APP_KEY: generate once and persist in the storage volume (never committed to Git)
 KEY_FILE=storage/app/.appkey
 if [ -z "$APP_KEY" ]; then
@@ -39,7 +45,8 @@ fi
 # 2. Wait for the database (max ~2 minutes)
 echo "[entrypoint] waiting for database ${DB_HOST}:${DB_PORT:-3306} ..."
 for i in $(seq 1 60); do
-  if php -r 'try{new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT")?:3306),getenv("DB_USERNAME"),getenv("DB_PASSWORD"));exit(0);}catch(Exception $e){exit(1);}'; then
+  # Cùng tùy chọn TLS như config/database.php (MySQL đám mây bắt buộc SSL)
+  if php -r '$o=[]; if(getenv("MYSQL_ATTR_SSL_CA")){$o[PDO::MYSQL_ATTR_SSL_CA]=getenv("MYSQL_ATTR_SSL_CA"); if(getenv("MYSQL_ATTR_SSL_VERIFY_SERVER_CERT")==="false"){$o[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT]=false;}} try{new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT")?:3306),getenv("DB_USERNAME"),getenv("DB_PASSWORD"),$o);exit(0);}catch(Exception $e){exit(1);}'; then
     break
   fi
   sleep 2

@@ -59,9 +59,12 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // MySQL qua TLS (Aiven...): MYSQL_ATTR_SSL_CA trỏ tới tệp CA; đặt
+            // MYSQL_ATTR_SSL_VERIFY_SERVER_CERT=false khi chưa có CA riêng của nhà cung cấp.
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_VERIFY_SERVER_CERT : PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT) => env('MYSQL_ATTR_SSL_VERIFY_SERVER_CERT'),
+            ], fn ($value) => $value !== null) : [],
         ],
 
         'mariadb' => [
@@ -79,9 +82,12 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // MySQL qua TLS (Aiven...): MYSQL_ATTR_SSL_CA trỏ tới tệp CA; đặt
+            // MYSQL_ATTR_SSL_VERIFY_SERVER_CERT=false khi chưa có CA riêng của nhà cung cấp.
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_VERIFY_SERVER_CERT : PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT) => env('MYSQL_ATTR_SSL_VERIFY_SERVER_CERT'),
+            ], fn ($value) => $value !== null) : [],
         ],
 
         'pgsql' => [
