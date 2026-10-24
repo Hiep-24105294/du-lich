@@ -41,6 +41,12 @@ use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /** Số lần đăng nhập sai tối đa trước khi khóa. */
+    public const LOGIN_MAX_ATTEMPTS = 5;
+
+    /** Thời gian khóa đăng nhập (phút) sau khi vượt số lần sai. */
+    public const LOGIN_LOCKOUT_MINUTES = 5;
+
     /** Giá trị mẫu từng nằm trong kho mã, không bao giờ được dùng làm khóa thật. */
     public const INSECURE_PAYMENT_SECRETS = ['sandbox-secret-change-me', 'changeme', 'secret'];
 
@@ -127,14 +133,14 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerRateLimiters(): void
     {
-        // Chống dò mật khẩu: 5 lần/phút cho mỗi cặp email + IP, thêm 5 lần/phút theo riêng email
-        // (độc lập IP) để đổi IP/X-Forwarded-For không vượt được giới hạn.
+        // Chống dò mật khẩu: tối đa 5 lần sai rồi khóa 5 phút cho mỗi cặp email + IP, thêm giới hạn
+        // riêng theo email (độc lập IP) để đổi IP/X-Forwarded-For không vượt được giới hạn.
         RateLimiter::for('login', function (Request $request) {
             $email = Str::lower(trim((string) $request->input('email')));
 
             return [
-                Limit::perMinute(5)->by('email-ip:'.$email.'|'.$request->ip()),
-                Limit::perMinute(5)->by('email:'.$email),
+                Limit::perMinutes(self::LOGIN_LOCKOUT_MINUTES, self::LOGIN_MAX_ATTEMPTS)->by('email-ip:'.$email.'|'.$request->ip()),
+                Limit::perMinutes(self::LOGIN_LOCKOUT_MINUTES, self::LOGIN_MAX_ATTEMPTS)->by('email:'.$email),
             ];
         });
 

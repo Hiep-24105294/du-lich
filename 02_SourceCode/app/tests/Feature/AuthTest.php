@@ -62,7 +62,9 @@ class AuthTest extends TestCase
         $this->post('/vi/dang-nhap', ['email' => 'user@disanso.test', 'password' => 'password'])
             ->assertSessionHasErrors('email');
         $this->assertGuest();
-        $this->assertStringContainsString('quá nhiều lần', session('errors')->first('email'));
+        $message = session('errors')->first('email');
+        $this->assertStringContainsString('quá nhiều lần', $message);
+        $this->assertStringContainsString('5 phút', $message, 'Khóa đăng nhập phải kéo dài 5 phút');
     }
 
     public function test_user_can_logout(): void

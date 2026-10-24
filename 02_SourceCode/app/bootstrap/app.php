@@ -79,10 +79,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Quá số lần đăng nhập: báo lỗi ngay trên ô email thay vì trang 429 trống
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
             if ($request->routeIs('login.store') && ! $request->expectsJson()) {
-                $seconds = (int) ($e->getHeaders()['Retry-After'] ?? 60);
+                $seconds = (int) ($e->getHeaders()['Retry-After'] ?? 300);
+                $minutes = max(1, (int) ceil($seconds / 60));
 
                 return back()->withInput($request->only('email'))
-                    ->withErrors(['email' => __('auth.throttle', ['seconds' => $seconds])]);
+                    ->withErrors(['email' => __('auth.throttle', ['seconds' => $seconds, 'minutes' => $minutes])]);
             }
 
             return null;
