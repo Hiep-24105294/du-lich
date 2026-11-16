@@ -30,7 +30,9 @@ git -C "$APP_DIR" reset --hard origin/main --quiet
 log "mã nguồn ở $(git -C "$APP_DIR" rev-parse --short HEAD)"
 
 # 2. .env chỉ sinh LẦN ĐẦU, secret tạo ngay trên máy chủ và không rời khỏi đây.
-if [[ ! -f "$ENV_FILE" ]]; then
+#    Ghi ra tệp tạm rồi mv: nếu sed chết giữa chừng, không để lại .env rỗng khiến lần sau
+#    tưởng đã có cấu hình và app chạy bằng mật khẩu mặc định của compose.yaml.
+if [[ ! -s "$ENV_FILE" ]]; then
   log "sinh $ENV_FILE"
   (
     umask 077
@@ -40,9 +42,11 @@ if [[ ! -f "$ENV_FILE" ]]; then
         -e "s|^ANALYTICS_TOKEN=.*|ANALYTICS_TOKEN=$(openssl rand -hex 32)|" \
         -e "s|^SEED_DEMO_PASSWORD=.*|SEED_DEMO_PASSWORD=${SEED_DEMO_PASSWORD:-$(openssl rand -base64 12 | tr -d '/+=')}|" \
         -e "s|^APP_FORWARD_PORT=.*|APP_FORWARD_PORT=$PORT|" \
-        "$VPS/env.vps.example" > "$ENV_FILE"
+        "$VPS/env.vps.example" > "$ENV_FILE.tmp"
+    mv "$ENV_FILE.tmp" "$ENV_FILE"
   )
 fi
+grep -q '^DB_PASSWORD=.\{20,\}' "$ENV_FILE" || { log "LỖI: $ENV_FILE thiếu DB_PASSWORD — không chạy app bằng mật khẩu mặc định"; exit 1; }
 
 # 3. Nginx + chứng chỉ. Bước 3a cài site HTTP để certbot xác minh qua webroot (cùng cách các
 #    site khác trên máy này), 3b xin chứng chỉ, 3c cài site đầy đủ có HTTPS.
