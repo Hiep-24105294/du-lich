@@ -8,7 +8,7 @@ Luồng: push `main` → `.github/workflows/deploy-vps.yml` build hai image lên
 | `compose.vps.yaml`   | Lớp phủ lên `compose.yaml`: không build, chỉ mở cổng web ở 127.0.0.1, giới hạn RAM |
 | `apache-vps.conf`    | Prefork 2–8 tiến trình thay cho 20–150 của bản gốc (máy 2 GB RAM)       |
 | `nginx-disanso.conf` | Site nginx của máy chủ, TLS Let's Encrypt qua webroot                   |
-| `.env.vps.example`   | Mẫu; `deploy.sh` sinh `.env` thật lần đầu với secret ngẫu nhiên          |
+| `env.vps.example`   | Mẫu; `deploy.sh` sinh `.env` thật lần đầu với secret ngẫu nhiên          |
 | `deploy.sh`          | Idempotent: clone, .env, nginx, chứng chỉ, kéo image, `compose up`      |
 
 Trên VPS: mã ở `/srv/disanso`, secret ở `/srv/disanso/02_SourceCode/deploy/vps/.env`

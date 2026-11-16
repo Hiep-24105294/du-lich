@@ -40,7 +40,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
         -e "s|^ANALYTICS_TOKEN=.*|ANALYTICS_TOKEN=$(openssl rand -hex 32)|" \
         -e "s|^SEED_DEMO_PASSWORD=.*|SEED_DEMO_PASSWORD=${SEED_DEMO_PASSWORD:-$(openssl rand -base64 12 | tr -d '/+=')}|" \
         -e "s|^APP_FORWARD_PORT=.*|APP_FORWARD_PORT=$PORT|" \
-        "$VPS/.env.vps.example" > "$ENV_FILE"
+        "$VPS/env.vps.example" > "$ENV_FILE"
   )
 fi
 
