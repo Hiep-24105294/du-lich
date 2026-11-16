@@ -1,0 +1,54 @@
+# Lớp phủ cho VPS 180.93.2.63 (Ubuntu 22.04, 2 GB RAM, dùng chung với hai dự án khác).
+# Chạy từ thư mục 02_SourceCode:
+#   docker compose -f compose.yaml -f deploy/vps/compose.vps.yaml --env-file deploy/vps/.env up -d --no-build
+#
+# Khác với compose.yaml gốc:
+# - Không build trên VPS (máy 1 nhân, 2 GB RAM): dùng image do GitHub Actions build sẵn.
+# - Chỉ cổng web mở ra 127.0.0.1 để nginx trỏ vào; MySQL và analytics không mở cổng nào.
+# - Giới hạn RAM từng dịch vụ và hạ cấu hình MySQL/Apache cho máy nhỏ.
+# - restart: unless-stopped — compose gốc không có, VPS khởi động lại là mất dịch vụ.
+name: disanso
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    ports: !reset []
+    # Mặc định MySQL 8 chiếm ~400 MB; buffer pool 64 MB và tắt performance_schema đưa về ~200 MB.
+    # CSDL mẫu ~2 MB nên buffer 64 MB vẫn thừa.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb-buffer-pool-size=64M
+      - --innodb-log-buffer-size=8M
+      - --performance-schema=OFF
+      - --max-connections=40
+      - --skip-log-bin
+    mem_limit: 384m
+    logging: &log
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  analytics:
+    image: ${DISANSO_IMAGE_ANALYTICS:-ghcr.io/hiep-24105294/du-lich-analytics:latest}
+    restart: unless-stopped
+    ports: !reset []
+    mem_limit: 384m
+    logging: *log
+
+  app:
+    image: ${DISANSO_IMAGE_WEB:-ghcr.io/hiep-24105294/du-lich-web:latest}
+    restart: unless-stopped
+    ports: !override
+      - "127.0.0.1:${APP_FORWARD_PORT:-8080}:80"
+    environment:
+      # Nginx trên cùng máy là đường vào duy nhất (cổng chỉ mở ở 127.0.0.1) nên tin mọi proxy
+      # là an toàn; thiếu nó Laravel sinh link http:// và cookie secure không gửi được.
+      TRUSTED_PROXIES: "*"
+      SESSION_SECURE_COOKIE: "true"
+    volumes:
+      # Thay cấu hình prefork 20–150 tiến trình (viết cho máy 4 GB) bằng bản cho máy 2 GB.
+      - ./deploy/vps/apache-vps.conf:/etc/apache2/conf-available/disanso-performance.conf:ro
+    mem_limit: 512m
+    logging: *log

@@ -1,0 +1,93 @@
+name: Deploy VPS
+
+# Build hai image (web, analytics) lên GHCR rồi SSH vào VPS kéo về chạy bằng Docker Compose.
+# VPS 2 GB RAM không build nổi Vite + Composer, nên build ở runner. Secret cần: DEPLOY_SSH_KEY
+# (private key ed25519, public key nằm trong /root/.ssh/authorized_keys của VPS).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '02_SourceCode/**'
+      - '.github/workflows/deploy-vps.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_WEB: ghcr.io/hiep-24105294/du-lich-web
+  IMAGE_ANALYTICS: ghcr.io/hiep-24105294/du-lich-analytics
+  DEPLOY_HOST: 180.93.2.63
+  DEPLOY_USER: root
+  DISANSO_DOMAIN: disanso.180.93.2.63.nip.io
+
+jobs:
+  build:
+    name: Build image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Ngữ cảnh build = gốc kho (Dockerfile trong deploy/ COPY theo tiền tố 02_SourceCode/,
+      # .dockerignore ở gốc kho bỏ node_modules/vendor). Tag sha để deploy đúng bản vừa build,
+      # tag latest để chạy tay trên VPS không cần biết sha.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: 02_SourceCode/deploy/Dockerfile.web
+          push: true
+          tags: |
+            ${{ env.IMAGE_WEB }}:${{ github.sha }}
+            ${{ env.IMAGE_WEB }}:latest
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: 02_SourceCode/deploy/Dockerfile.analytics
+          push: true
+          tags: |
+            ${{ env.IMAGE_ANALYTICS }}:${{ github.sha }}
+            ${{ env.IMAGE_ANALYTICS }}:latest
+          cache-from: type=gha,scope=analytics
+          cache-to: type=gha,scope=analytics,mode=max
+
+  deploy:
+    name: Deploy lên VPS
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cài SSH key deploy
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n' "$DEPLOY_HOST" "$DEPLOY_USER" >> ~/.ssh/config
+
+      # deploy.sh lấy từ checkout của runner (đúng commit đang deploy), chạy trên VPS qua stdin.
+      # Image là package của kho công khai nên VPS kéo không cần đăng nhập.
+      - name: Chạy deploy.sh trên VPS
+        run: |
+          ssh vps "DISANSO_DOMAIN='$DISANSO_DOMAIN' DISANSO_IMAGE_TAG='${{ github.sha }}' bash -s" \
+            < 02_SourceCode/deploy/vps/deploy.sh
+
+      - name: Health check qua HTTPS
+        run: |
+          sleep 3
+          curl -fsS "https://$DISANSO_DOMAIN/healthz" && echo && echo "WEB OK"

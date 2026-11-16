@@ -54,3 +54,6 @@ _workspace/_sample_out.json
 _workspace/
 
 scripts/
+
+# Secret sinh trên VPS, không bao giờ commit
+02_SourceCode/deploy/vps/.env
